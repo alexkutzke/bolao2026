@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useMatches, useMatchGroups } from '../hooks/useMatches';
+import { useMatches, useMatchGroups, useGroupStageComplete } from '../hooks/useMatches';
 import { usePredictions } from '../hooks/usePredictions';
 import { MatchCard } from '../components/MatchCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
@@ -12,6 +12,7 @@ export function HomePage() {
 
   const { matches, loading, error } = useMatches(stage);
   const { groups, loading: groupsLoading } = useMatchGroups();
+  const { allFinished: groupStageDone, loading: checkingGroupStage } = useGroupStageComplete();
   const { predictions, savePrediction } = usePredictions();
   const [savingId, setSavingId] = useState<number | null>(null);
 
