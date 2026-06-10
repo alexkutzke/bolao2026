@@ -56,18 +56,28 @@ export function HomePage() {
     });
   }, [matches, stage, groupFilter, matchdayFilter]);
 
-  // Group matches by date
+  // Group matches by date (Brasília time). Games before 6 AM are moved to previous day.
   const groupedByDate = useMemo(() => {
     const groups: { date: string; matches: Match[] }[] = [];
     const seen = new Map<string, number>();
 
     for (const match of filtered) {
-      const dateKey = new Date(match.match_date).toLocaleDateString('pt-BR', {
+      // Get Brasília local time for this match (match_date is stored as UTC)
+      const utcDate = new Date(match.match_date);
+      const matchBrasilia = new Date(
+        utcDate.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }),
+      );
+
+      // If game starts before 6 AM, shift to previous day for grouping
+      if (matchBrasilia.getHours() < 6) {
+        matchBrasilia.setDate(matchBrasilia.getDate() - 1);
+      }
+
+      const dateKey = matchBrasilia.toLocaleDateString('pt-BR', {
         weekday: 'long',
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
-        timeZone: 'America/Sao_Paulo',
       });
 
       if (seen.has(dateKey)) {
