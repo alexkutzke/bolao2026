@@ -17,21 +17,6 @@ export function HomePage() {
   const { predictions, savePrediction } = usePredictions();
   const [savingId, setSavingId] = useState<number | null>(null);
 
-  // Todos os palpites (de todos os usuários) para os jogos filtrados
-  const filteredMatchIds = useMemo(() => filtered.map((m) => m.id), [filtered]);
-  const { predictions: allPredictions } = useAllPredictions(filteredMatchIds);
-
-  // Agrupa palpites por match_id
-  const allPredictionsByMatch = useMemo(() => {
-    const map = new Map<number, PredictionWithName[]>();
-    allPredictions.forEach((p) => {
-      const list = map.get(p.match_id) || [];
-      list.push(p);
-      map.set(p.match_id, list);
-    });
-    return map;
-  }, [allPredictions]);
-
   const predictionMap = useMemo(() => {
     const map = new Map<number, Prediction>();
     predictions.forEach((p) => map.set(p.match_id, p));
@@ -55,6 +40,21 @@ export function HomePage() {
       return true;
     });
   }, [matches, stage, groupFilter, matchdayFilter]);
+
+  // Todos os palpites (de todos os usuários) para os jogos filtrados
+  const filteredMatchIds = useMemo(() => filtered.map((m) => m.id), [filtered]);
+  const { predictions: allPredictions } = useAllPredictions(filteredMatchIds);
+
+  // Agrupa palpites por match_id
+  const allPredictionsByMatch = useMemo(() => {
+    const map = new Map<number, PredictionWithName[]>();
+    allPredictions.forEach((p) => {
+      const list = map.get(p.match_id) || [];
+      list.push(p);
+      map.set(p.match_id, list);
+    });
+    return map;
+  }, [allPredictions]);
 
   // Group matches by date (Brasília time). Games before 6 AM are moved to previous day.
   const groupedByDate = useMemo(() => {

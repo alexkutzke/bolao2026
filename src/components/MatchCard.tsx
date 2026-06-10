@@ -23,7 +23,7 @@ interface MatchCardProps {
   saving?: boolean;
 }
 
-export function MatchCard({ match, prediction, onPredict, saving }: MatchCardProps) {
+export function MatchCard({ match, prediction, allPredictions, onPredict, saving }: MatchCardProps) {
   const matchDate = new Date(match.match_date);
   const now = new Date();
   const isPast = matchDate <= now;
