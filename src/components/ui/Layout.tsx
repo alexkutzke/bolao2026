@@ -45,7 +45,9 @@ export function Layout() {
           <div className="flex items-center gap-3">
             {user && (
               <>
-                <span className="text-sm text-gray-400">{profile?.name}</span>
+                <Link to="/profile" className="text-sm text-gray-400 hover:text-white transition">
+                  {profile?.name}
+                </Link>
                 <button
                   onClick={signOut}
                   className="text-sm text-gray-400 hover:text-white transition"
