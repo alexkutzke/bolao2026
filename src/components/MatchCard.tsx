@@ -21,6 +21,12 @@ interface MatchCardProps {
   } | null;
   onPredict?: (home: number, away: number) => void;
   saving?: boolean;
+  allPredictions?: Array<{
+    user_id: string;
+    home_score: number;
+    away_score: number;
+    profiles: { name: string } | null;
+  }>;
 }
 
 export function MatchCard({ match, prediction, allPredictions, onPredict, saving }: MatchCardProps) {
@@ -176,7 +182,7 @@ export function MatchCard({ match, prediction, allPredictions, onPredict, saving
         <div className="mt-3 pt-3 border-t border-gray-800/50">
           <p className="text-xs text-gray-600 mb-1.5">Palpites registrados:</p>
           <div className="space-y-1">
-            {allPredictions.map((p) => (
+            {allPredictions.map((p: { user_id: string; home_score: number; away_score: number; profiles: { name: string } | null }) => (
               <div key={p.user_id} className="flex items-center justify-between text-xs">
                 <span className="text-gray-400 truncate max-w-[120px]">
                   {p.profiles?.name || 'Anônimo'}
