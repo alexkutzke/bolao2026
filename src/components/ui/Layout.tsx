@@ -11,6 +11,7 @@ export function Layout() {
     { to: '/', label: 'Jogos' },
     { to: '/predictions', label: 'Meus Palpites' },
     { to: '/leaderboard', label: 'Pontuação' },
+    { to: '/rules', label: 'Regras' },
   ];
 
   if (profile?.is_admin) {
