@@ -170,6 +170,25 @@ export function MatchCard({ match, prediction, onPredict, saving }: MatchCardPro
           <p className="text-xs text-gray-600 italic">Times a definir</p>
         </div>
       )}
+
+      {/* Palpites de todos os participantes */}
+      {allPredictions && allPredictions.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-gray-800/50">
+          <p className="text-xs text-gray-600 mb-1.5">Palpites registrados:</p>
+          <div className="space-y-1">
+            {allPredictions.map((p) => (
+              <div key={p.user_id} className="flex items-center justify-between text-xs">
+                <span className="text-gray-400 truncate max-w-[120px]">
+                  {p.profiles?.name || 'Anônimo'}
+                </span>
+                <span className="font-medium tabular-nums text-gray-300">
+                  {p.home_score} × {p.away_score}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

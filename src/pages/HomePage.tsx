@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useMatches, useMatchGroups, useGroupStageComplete } from '../hooks/useMatches';
 import { usePredictions } from '../hooks/usePredictions';
+import { useAllPredictions, type PredictionWithName } from '../hooks/useAllPredictions';
 import { MatchCard } from '../components/MatchCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import type { CompetitionSlug, Prediction, Match } from '../types';
@@ -15,6 +16,21 @@ export function HomePage() {
   const { allFinished: groupStageDone, loading: checkingGroupStage } = useGroupStageComplete();
   const { predictions, savePrediction } = usePredictions();
   const [savingId, setSavingId] = useState<number | null>(null);
+
+  // Todos os palpites (de todos os usuários) para os jogos filtrados
+  const filteredMatchIds = useMemo(() => filtered.map((m) => m.id), [filtered]);
+  const { predictions: allPredictions } = useAllPredictions(filteredMatchIds);
+
+  // Agrupa palpites por match_id
+  const allPredictionsByMatch = useMemo(() => {
+    const map = new Map<number, PredictionWithName[]>();
+    allPredictions.forEach((p) => {
+      const list = map.get(p.match_id) || [];
+      list.push(p);
+      map.set(p.match_id, list);
+    });
+    return map;
+  }, [allPredictions]);
 
   const predictionMap = useMemo(() => {
     const map = new Map<number, Prediction>();
@@ -165,6 +181,7 @@ export function HomePage() {
                     key={match.id}
                     match={match}
                     prediction={predictionMap.get(match.id) || null}
+                    allPredictions={allPredictionsByMatch.get(match.id) || []}
                     onPredict={(h, a) => handlePredict(match.id, h, a)}
                     saving={savingId === match.id}
                   />

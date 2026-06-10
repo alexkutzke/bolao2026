@@ -46,6 +46,44 @@ export function LeaderboardPage() {
 
       {!loading && entries.length > 0 && (
         <div className="overflow-x-auto">
+          {/* Critérios de pontuação */}
+          <div className="bg-gray-900/70 rounded-xl border border-gray-800 p-5 mb-6">
+            <h3 className="text-sm font-semibold text-gray-300 mb-3">📋 Como funciona a pontuação</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/20 border border-green-800/50">
+                <span className="text-lg font-bold text-green-400 shrink-0">10</span>
+                <div>
+                  <p className="text-sm font-medium text-green-300">Placar exato</p>
+                  <p className="text-xs text-gray-400">Acertar o placar exato do jogo. Ex: palpite 2×1, resultado 2×1.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/15 border border-green-800/30">
+                <span className="text-lg font-bold text-green-300 shrink-0">7</span>
+                <div>
+                  <p className="text-sm font-medium text-green-300">Vencedor + diferença de gols</p>
+                  <p className="text-xs text-gray-400">Acertar quem ganhou <strong>e</strong> a diferença de gols. Ex: palpite 3×1, resultado 2×0 (diferença de 2 gols).</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/10 border border-green-800/20">
+                <span className="text-lg font-bold text-green-200 shrink-0">4</span>
+                <div>
+                  <p className="text-sm font-medium text-green-200">Vencedor ou empate</p>
+                  <p className="text-xs text-gray-400">Acertar apenas quem ganhou, ou acertar que foi empate. Ex: palpite 1×0, resultado 3×1.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/5 border border-green-800/10">
+                <span className="text-lg font-bold text-green-100 shrink-0">2</span>
+                <div>
+                  <p className="text-sm font-medium text-green-100">Gols de um time</p>
+                  <p className="text-xs text-gray-400">Acertar o número exato de gols de um dos times. Ex: palpite 2×1, resultado 2×0 (acertou 2 gols do time A).</p>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              ⚠️ Apenas a <strong>maior pontuação</strong> é atribuída por jogo — as categorias não acumulam.
+            </p>
+          </div>
+
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-800 text-gray-500 uppercase text-xs tracking-wide">
@@ -93,9 +131,6 @@ export function LeaderboardPage() {
               ))}
             </tbody>
           </table>
-          <p className="text-xs text-gray-600 mt-3 text-center">
-            Exato = Placar exato (10pts) · V+D = Vencedor + Diferença (7pts) · Venc = Vencedor/Empate (4pts) · Gols = Gols de um time (2pts)
-          </p>
         </div>
       )}
     </div>
