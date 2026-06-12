@@ -27,9 +27,11 @@ interface MatchCardProps {
     away_score: number;
     profiles: { name: string } | null;
   }>;
+  homeFlag?: string;
+  awayFlag?: string;
 }
 
-export function MatchCard({ match, prediction, allPredictions, onPredict, saving }: MatchCardProps) {
+export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, onPredict, saving }: MatchCardProps) {
   const matchDate = new Date(match.match_date);
   const now = new Date();
   const isPast = matchDate <= now;
@@ -74,6 +76,9 @@ export function MatchCard({ match, prediction, allPredictions, onPredict, saving
       {/* Teams + Score */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex-1 text-center min-w-0">
+          {homeFlag && (
+            <img src={homeFlag} alt="" className="w-8 h-5 mx-auto mb-1 rounded shadow-sm object-cover" />
+          )}
           <p className="text-sm font-semibold truncate">
             {match.home_team_label || match.home_team_name}
           </p>
@@ -90,6 +95,9 @@ export function MatchCard({ match, prediction, allPredictions, onPredict, saving
         </div>
 
         <div className="flex-1 text-center min-w-0">
+          {awayFlag && (
+            <img src={awayFlag} alt="" className="w-8 h-5 mx-auto mb-1 rounded shadow-sm object-cover" />
+          )}
           <p className="text-sm font-semibold truncate">
             {match.away_team_label || match.away_team_name}
           </p>

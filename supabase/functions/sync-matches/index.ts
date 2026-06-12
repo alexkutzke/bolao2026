@@ -163,8 +163,26 @@ Deno.serve(async (_req) => {
 
     console.log(`Sync done: ${synced} inserted, ${updated} updated, ${skipped} skipped (manual), ${errors} errors`);
 
+    // Sync teams (flags)
+    let teamsSynced = 0;
+    try {
+      const teamsRes = await fetch(`${API_BASE}/get/teams`);
+      if (teamsRes.ok) {
+        const { teams } = await teamsRes.json() as { teams: Array<{ id: string; name_en: string; flag: string; iso2: string }> };
+        for (const team of teams) {
+          const { error } = await supabase
+            .from('teams')
+            .upsert({ id: team.id, name_en: team.name_en, flag_url: team.flag, iso2: team.iso2 });
+          if (!error) teamsSynced++;
+        }
+        console.log(`Teams synced: ${teamsSynced}`);
+      }
+    } catch (e) {
+      console.error('Team sync error:', e);
+    }
+
     return new Response(
-      JSON.stringify({ success: true, synced, updated, skipped, errors, total: games.length }),
+      JSON.stringify({ success: true, synced, updated, skipped, errors, teams: teamsSynced, total: games.length }),
       { headers },
     );
   } catch (err) {

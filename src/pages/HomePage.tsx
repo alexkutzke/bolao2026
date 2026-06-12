@@ -4,6 +4,7 @@ import { usePredictions } from '../hooks/usePredictions';
 import { useAllPredictions, type PredictionWithName } from '../hooks/useAllPredictions';
 import { MatchCard } from '../components/MatchCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { useTeams } from '../hooks/useTeams';
 import type { CompetitionSlug, Prediction, Match } from '../types';
 
 export function HomePage() {
@@ -47,6 +48,7 @@ export function HomePage() {
   // Todos os palpites (de todos os usuários) para os jogos filtrados
   const filteredMatchIds = useMemo(() => filtered.map((m) => m.id), [filtered]);
   const { predictions: allPredictions } = useAllPredictions(filteredMatchIds);
+  const { teamMap } = useTeams();
 
   // Agrupa palpites por match_id
   const allPredictionsByMatch = useMemo(() => {
@@ -234,6 +236,8 @@ export function HomePage() {
                     match={match}
                     prediction={predictionMap.get(match.id) || null}
                     allPredictions={allPredictionsByMatch.get(match.id) || []}
+                    homeFlag={teamMap.get(match.home_team_id)}
+                    awayFlag={teamMap.get(match.away_team_id)}
                     onPredict={(h, a) => handlePredict(match.id, h, a)}
                     saving={savingId === match.id}
                   />
@@ -263,6 +267,8 @@ export function HomePage() {
                         match={match}
                         prediction={predictionMap.get(match.id) || null}
                         allPredictions={allPredictionsByMatch.get(match.id) || []}
+                        homeFlag={teamMap.get(match.home_team_id)}
+                        awayFlag={teamMap.get(match.away_team_id)}
                         onPredict={(h, a) => handlePredict(match.id, h, a)}
                         saving={savingId === match.id}
                       />

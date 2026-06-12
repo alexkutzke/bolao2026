@@ -89,6 +89,14 @@ INSERT INTO public.competitions (name, slug) VALUES
   ('Mata-mata', 'knockout')
 ON CONFLICT (slug) DO NOTHING;
 
+-- 5. Tabela de Times (bandeiras)
+CREATE TABLE IF NOT EXISTS public.teams (
+  id TEXT PRIMARY KEY,
+  name_en TEXT NOT NULL,
+  flag_url TEXT NOT NULL,
+  iso2 TEXT
+);
+
 -- ============================================================
 -- Row Level Security (RLS)
 -- ============================================================
@@ -97,6 +105,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.predictions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.competitions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: usuários leem todos, admin gerencia
 CREATE POLICY "Profiles are viewable by authenticated users"
@@ -165,6 +174,12 @@ CREATE POLICY "Users can delete own predictions"
 -- Competitions: todos leem
 CREATE POLICY "Competitions are viewable by everyone"
   ON public.competitions FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Teams: todos leem
+CREATE POLICY "Teams are viewable by everyone"
+  ON public.teams FOR SELECT
   TO authenticated
   USING (true);
 
