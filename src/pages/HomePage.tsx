@@ -10,6 +10,7 @@ export function HomePage() {
   const [stage, setStage] = useState<CompetitionSlug>('group');
   const [groupFilter, setGroupFilter] = useState<string>('all');
   const [matchdayFilter, setMatchdayFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'finished'>('all');
 
   const { matches, loading, error } = useMatches(stage);
   const { groups, loading: groupsLoading } = useMatchGroups();
@@ -37,9 +38,11 @@ export function HomePage() {
         if (groupFilter !== 'all' && m.group_name !== groupFilter) return false;
         if (matchdayFilter !== 'all' && m.matchday !== parseInt(matchdayFilter)) return false;
       }
+      if (statusFilter === 'finished' && !m.finished) return false;
+      if (statusFilter === 'upcoming' && m.finished) return false;
       return true;
     });
-  }, [matches, stage, groupFilter, matchdayFilter]);
+  }, [matches, stage, groupFilter, matchdayFilter, statusFilter]);
 
   // Todos os palpites (de todos os usuários) para os jogos filtrados
   const filteredMatchIds = useMemo(() => filtered.map((m) => m.id), [filtered]);
@@ -56,38 +59,56 @@ export function HomePage() {
     return map;
   }, [allPredictions]);
 
-  // Group matches by date (Brasília time). Games before 6 AM are moved to previous day.
-  const groupedByDate = useMemo(() => {
-    const groups: { date: string; matches: Match[] }[] = [];
-    const seen = new Map<string, number>();
+  // Split into future and past, then group each by date (Brasília time).
+  // Games before 6 AM are shifted to previous day for grouping.
+  const { futureGroups, pastGroups } = useMemo(() => {
+    const now = new Date();
+    const future: Match[] = [];
+    const past: Match[] = [];
 
     for (const match of filtered) {
-      // Get Brasília local time for this match (match_date is stored as UTC)
-      const utcDate = new Date(match.match_date);
-      const matchBrasilia = new Date(
-        utcDate.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }),
-      );
-
-      // If game starts before 6 AM, shift to previous day for grouping
-      if (matchBrasilia.getHours() < 6) {
-        matchBrasilia.setDate(matchBrasilia.getDate() - 1);
-      }
-
-      const dateKey = matchBrasilia.toLocaleDateString('pt-BR', {
-        weekday: 'long',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      });
-
-      if (seen.has(dateKey)) {
-        groups[seen.get(dateKey)!].matches.push(match);
+      if (new Date(match.match_date) >= now) {
+        future.push(match);
       } else {
-        seen.set(dateKey, groups.length);
-        groups.push({ date: dateKey, matches: [match] });
+        past.push(match);
       }
     }
-    return groups;
+
+    function groupByDate(matches: Match[]) {
+      const groups: { date: string; matches: Match[] }[] = [];
+      const seen = new Map<string, number>();
+
+      for (const match of matches) {
+        const utcDate = new Date(match.match_date);
+        const matchBrasilia = new Date(
+          utcDate.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }),
+        );
+
+        if (matchBrasilia.getHours() < 6) {
+          matchBrasilia.setDate(matchBrasilia.getDate() - 1);
+        }
+
+        const dateKey = matchBrasilia.toLocaleDateString('pt-BR', {
+          weekday: 'long',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        });
+
+        if (seen.has(dateKey)) {
+          groups[seen.get(dateKey)!].matches.push(match);
+        } else {
+          seen.set(dateKey, groups.length);
+          groups.push({ date: dateKey, matches: [match] });
+        }
+      }
+      return groups;
+    }
+
+    return {
+      futureGroups: groupByDate(future),
+      pastGroups: groupByDate(past),
+    };
   }, [filtered]);
 
   async function handlePredict(matchId: number, home_score: number, away_score: number) {
@@ -147,6 +168,16 @@ export function HomePage() {
               <option key={d} value={d}>Rodada {d}</option>
             ))}
           </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'upcoming' | 'finished')}
+            className="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-green-500"
+          >
+            <option value="all">Todos os status</option>
+            <option value="upcoming">A definir / Em andamento</option>
+            <option value="finished">Encerrados</option>
+          </select>
         </div>
       )}
 
@@ -161,6 +192,16 @@ export function HomePage() {
             {knockoutStages.map((s) => (
               <option key={s} value={s}>{s === '3RD' ? '3º Lugar' : s}</option>
             ))}
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'upcoming' | 'finished')}
+            className="px-3 py-1.5 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-green-500"
+          >
+            <option value="all">Todos os status</option>
+            <option value="upcoming">A definir / Em andamento</option>
+            <option value="finished">Encerrados</option>
           </select>
         </div>
       )}
@@ -179,10 +220,11 @@ export function HomePage() {
 
       {!loading && !error && (stage === 'group' || !checkingGroupStage) && (stage === 'group' || groupStageDone) && (
         <div className="space-y-8">
-          {groupedByDate.map((group) => (
-            <div key={group.date}>
+          {/* FUTURE GAMES */}
+          {futureGroups.map((group) => (
+            <div key={'f-' + group.date}>
               <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                 {group.date}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -199,6 +241,38 @@ export function HomePage() {
               </div>
             </div>
           ))}
+
+          {/* Divider + PAST GAMES */}
+          {pastGroups.length > 0 && (
+            <>
+              <div className="flex items-center gap-3 py-2">
+                <hr className="flex-1 border-gray-800" />
+                <span className="text-xs text-gray-600 font-medium uppercase">Jogos encerrados</span>
+                <hr className="flex-1 border-gray-800" />
+              </div>
+              {pastGroups.map((group) => (
+                <div key={'p-' + group.date}>
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-600" />
+                    {group.date}
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {group.matches.map((match) => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        prediction={predictionMap.get(match.id) || null}
+                        allPredictions={allPredictionsByMatch.get(match.id) || []}
+                        onPredict={(h, a) => handlePredict(match.id, h, a)}
+                        saving={savingId === match.id}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
           {filtered.length === 0 && (
             <p className="text-gray-500 text-center py-8">
               Nenhum jogo encontrado.
