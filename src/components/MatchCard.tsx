@@ -154,21 +154,12 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
       {/* Prediction Section — Future match with prediction */}
       {!isPast && !match.finished && prediction && (
         <div className="mt-3 pt-3 border-t border-gray-800">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-400">
-              Seu palpite:{' '}
-              <span className="text-green-400 font-medium">
-                {prediction.home_score} × {prediction.away_score}
-              </span>
-            </p>
-            <button
-              onClick={() => onPredict!(prediction.home_score, prediction.away_score)}
-              className="text-xs text-yellow-400 hover:text-yellow-300 transition"
-              disabled={saving}
-            >
-              Editar
-            </button>
-          </div>
+          <PredictionInput
+            onSubmit={(h, a) => onPredict!(h, a)}
+            saving={saving}
+            initialHome={prediction.home_score}
+            initialAway={prediction.away_score}
+          />
         </div>
       )}
 
@@ -211,9 +202,13 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
 function PredictionInput({
   onSubmit,
   saving,
+  initialHome,
+  initialAway,
 }: {
   onSubmit: (home: number, away: number) => void;
   saving?: boolean;
+  initialHome?: number;
+  initialAway?: number;
 }) {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -233,6 +228,7 @@ function PredictionInput({
         min="0"
         max="99"
         placeholder="0"
+        defaultValue={initialHome}
         required
         className="w-14 px-2 py-1.5 text-center bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-green-500"
       />
@@ -243,6 +239,7 @@ function PredictionInput({
         min="0"
         max="99"
         placeholder="0"
+        defaultValue={initialAway}
         required
         className="w-14 px-2 py-1.5 text-center bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-green-500"
       />
