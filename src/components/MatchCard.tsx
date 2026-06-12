@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 interface MatchCardProps {
   match: {
     id: number;
@@ -33,6 +35,7 @@ interface MatchCardProps {
 }
 
 export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, onPredict, saving }: MatchCardProps) {
+  const [editing, setEditing] = useState(false);
   const matchDate = new Date(match.match_date);
   const now = new Date();
   const isPast = matchDate <= now;
@@ -152,13 +155,33 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
       )}
 
       {/* Prediction Section — Future match with prediction */}
-      {!isPast && !match.finished && prediction && (
+      {!isPast && !match.finished && prediction && !editing && (
+        <div className="mt-3 pt-3 border-t border-gray-800">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-400">
+              Seu palpite:{' '}
+              <span className="text-green-400 font-medium">
+                {prediction.home_score} × {prediction.away_score}
+              </span>
+            </p>
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs text-yellow-400 hover:text-yellow-300 transition"
+            >
+              Editar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Prediction Section — Future match editing */}
+      {!isPast && !match.finished && editing && (
         <div className="mt-3 pt-3 border-t border-gray-800">
           <PredictionInput
-            onSubmit={(h, a) => onPredict!(h, a)}
+            onSubmit={(h, a) => { onPredict!(h, a); setEditing(false); }}
             saving={saving}
-            initialHome={prediction.home_score}
-            initialAway={prediction.away_score}
+            initialHome={prediction?.home_score}
+            initialAway={prediction?.away_score}
           />
         </div>
       )}
