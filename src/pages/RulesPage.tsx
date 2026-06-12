@@ -65,8 +65,8 @@ export function RulesPage() {
             <div>
               <p className="font-medium text-green-100">Gols de um time</p>
               <p className="text-sm text-gray-400">
-                Acertar exatamente o número de gols de um dos times.<br />
-                <em>Ex: palpite 2×1, resultado real 2×0 — acertou os 2 gols do time A.</em>
+                Acertar exatamente o número de gols de um dos times, quando nenhuma regra acima se aplica.<br />
+                <em>Ex: palpite 2×1, resultado real 2×2 — acertou os 2 gols do time A, mas errou o vencedor.</em>
               </p>
             </div>
           </div>

@@ -75,7 +75,7 @@ export function LeaderboardPage() {
                 <span className="text-lg font-bold text-green-100 shrink-0">2</span>
                 <div>
                   <p className="text-sm font-medium text-green-100">Gols de um time</p>
-                  <p className="text-xs text-gray-400">Acertar o número exato de gols de um dos times. Ex: palpite 2×1, resultado 2×0 (acertou 2 gols do time A).</p>
+                  <p className="text-xs text-gray-400">Acertar o número exato de gols de um dos times, quando nenhuma regra acima se aplica. Ex: palpite 2×1, resultado 2×2 (acertou os 2 gols do time A, mas errou o vencedor).</p>
                 </div>
               </div>
             </div>

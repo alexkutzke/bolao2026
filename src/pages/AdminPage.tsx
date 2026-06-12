@@ -427,48 +427,27 @@ function UsersTab() {
     setStatus('');
 
     try {
-      // Tenta via Edge Function (usa service_role → auto-confirma email)
       const { data: fnData, error: fnError } = await supabase.functions.invoke('create-user', {
         body: { email: newEmail, password: newPassword, name: newName },
       });
 
-      if (!fnError && fnData?.success) {
-        setStatus(`✅ Usuário ${newName} criado!`);
-        setNewEmail('');
-        setNewName('');
-        setNewPassword('');
-        loadUsers();
+      if (fnError) {
+        setStatus(`❌ Erro ao chamar Edge Function: ${fnError.message}. Verifique se as funções estão deployadas.`);
         setCreating(false);
         return;
       }
 
-      // Fallback: signUp direto (requer email confirmation DESABILITADO no Supabase)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newEmail,
-        password: newPassword,
-        options: { data: { name: newName } },
-      });
-
-      if (authError) {
-        setStatus(`❌ Erro: ${authError.message}. Tente criar o usuário pelo dashboard do Supabase (Authentication → Users → Add User).`);
+      if (fnData?.error) {
+        setStatus(`❌ Erro: ${fnData.error}`);
         setCreating(false);
         return;
       }
 
-      if (authData.user) {
-        // Garante que o perfil existe (trigger handle_new_user deve ter criado)
-        await supabase.from('profiles').upsert({
-          id: authData.user.id,
-          email: newEmail,
-          name: newName,
-          is_admin: false,
-        });
-        setStatus(`✅ Usuário ${newName} criado!`);
-        setNewEmail('');
-        setNewName('');
-        setNewPassword('');
-        loadUsers();
-      }
+      setStatus(`✅ Usuário ${newName} criado!`);
+      setNewEmail('');
+      setNewName('');
+      setNewPassword('');
+      loadUsers();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido';
       setStatus(`❌ Erro: ${message}`);
@@ -482,11 +461,7 @@ function UsersTab() {
     <div className="space-y-8">
       {/* Create User Form */}
       <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-        <h2 className="text-lg font-semibold mb-1">➕ Criar Novo Usuário</h2>
-        <p className="text-xs text-gray-500 mb-4">
-          ⚠️ Verifique se "Enable email confirmations" está <strong>DESABILITADO</strong> em
-          Authentication → Settings no Supabase. Isso é necessário para o fallback de criação direta.
-        </p>
+        <h2 className="text-lg font-semibold mb-4">➕ Criar Novo Usuário</h2>
         <form onSubmit={createUser} className="space-y-3 max-w-md">
           <input
             type="text"
