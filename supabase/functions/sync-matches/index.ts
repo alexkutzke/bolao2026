@@ -181,6 +181,24 @@ Deno.serve(async (_req) => {
       console.error('Team sync error:', e);
     }
 
+    // Sync stadiums
+    let stadiumsSynced = 0;
+    try {
+      const stadiumsRes = await fetch(`${API_BASE}/get/stadiums`);
+      if (stadiumsRes.ok) {
+        const { stadiums } = await stadiumsRes.json() as { stadiums: Array<{ id: string; name_en: string; city_en: string }> };
+        for (const s of stadiums) {
+          const { error } = await supabase
+            .from('stadiums')
+            .upsert({ id: s.id, name_en: s.name_en, city_en: s.city_en });
+          if (!error) stadiumsSynced++;
+        }
+        console.log(`Stadiums synced: ${stadiumsSynced}`);
+      }
+    } catch (e) {
+      console.error('Stadium sync error:', e);
+    }
+
     return new Response(
       JSON.stringify({ success: true, synced, updated, skipped, errors, teams: teamsSynced, total: games.length }),
       { headers },

@@ -29,9 +29,10 @@ interface MatchCardProps {
   }>;
   homeFlag?: string;
   awayFlag?: string;
+  stadiumName?: string;
 }
 
-export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, onPredict, saving }: MatchCardProps) {
+export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, onPredict, saving }: MatchCardProps) {
   const matchDate = new Date(match.match_date);
   const now = new Date();
   const isPast = matchDate <= now;
@@ -107,7 +108,7 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
       {/* Info */}
       <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
         <span>{matchDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}</span>
-        <span>🏟 {match.stadium}</span>
+        <span>🏟 {stadiumName || match.stadium}</span>
       </div>
 
       {/* Prediction Section — Finished match: show result + user prediction */}
