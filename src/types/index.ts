@@ -79,6 +79,7 @@ export interface LeaderboardEntry {
   winner_diff: number;
   winners: number;
   one_team_goals: number;
+  change: 'up' | 'down' | 'same' | null;
 }
 
 export type CompetitionSlug = 'group' | 'knockout';

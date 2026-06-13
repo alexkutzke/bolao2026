@@ -97,6 +97,37 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Save rankings snapshot for position change tracking
+    for (const stage of ['group', 'knockout']) {
+      const { data: leaderboard } = await supabase
+        .from('predictions')
+        .select('user_id, points')
+        .eq('matches.stage', stage)
+        .not('points', 'is', null);
+
+      if (leaderboard) {
+        // Aggregate points per user
+        const totals = new Map<string, number>();
+        for (const row of leaderboard) {
+          totals.set(row.user_id, (totals.get(row.user_id) || 0) + row.points);
+        }
+        // Sort by points desc and assign positions
+        const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1]);
+        for (let i = 0; i < sorted.length; i++) {
+          const [userId, pts] = sorted[i];
+          await supabase
+            .from('rankings_snapshot')
+            .upsert({
+              stage,
+              user_id: userId,
+              position: i + 1,
+              total_points: pts,
+              updated_at: new Date().toISOString(),
+            });
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, calculated }),
       { headers },

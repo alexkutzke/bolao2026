@@ -1,7 +1,20 @@
 import { useState } from 'react';
-import { useLeaderboard } from '../hooks/useLeaderboard';
+import { useLeaderboard, type LeaderboardEntry } from '../hooks/useLeaderboard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import type { CompetitionSlug } from '../types';
+
+function ChangeIcon({ change }: { change: LeaderboardEntry['change'] }) {
+  if (change === 'up') {
+    return <span className="text-green-400 text-xs" title="Subiu">▲</span>;
+  }
+  if (change === 'down') {
+    return <span className="text-red-400 text-xs" title="Desceu">▼</span>;
+  }
+  if (change === 'same') {
+    return <span className="text-gray-600 text-xs" title="Estável">■</span>;
+  }
+  return null;
+}
 
 export function LeaderboardPage() {
   const [stage, setStage] = useState<CompetitionSlug>('group');
@@ -119,7 +132,10 @@ export function LeaderboardPage() {
                       {index + 1}
                     </span>
                   </td>
-                  <td className="py-3 px-2">{entry.name}</td>
+                  <td className="py-3 px-2">
+                    <ChangeIcon change={entry.change} />{' '}
+                    {entry.name}
+                  </td>
                   <td className="py-3 px-2 text-center text-green-400 font-bold text-base">
                     {entry.total_points}
                   </td>
