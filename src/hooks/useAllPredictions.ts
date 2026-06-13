@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import type { Prediction } from '../types';
 
 export interface PredictionWithName extends Prediction {
+  points: number | null;
+  points_detail: string | null;
   profiles: { name: string } | null;
 }
 

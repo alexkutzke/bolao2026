@@ -109,6 +109,25 @@ function SyncTab() {
     setLoading(false);
   }
 
+  async function syncResults() {
+    setLoading(true);
+    setStatus('Buscando resultados de jogos finalizados...');
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-results');
+
+      if (error) {
+        setStatus(`❌ Erro na Edge Function: ${error.message}`);
+      } else {
+        setStatus(`✅ ${data.updated} resultados atualizados (${data.total_finished} jogos finalizados na API).`);
+        loadStats();
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      setStatus(`❌ Erro: ${message}`);
+    }
+    setLoading(false);
+  }
+
   async function calculateAllScores() {
     setLoading(true);
     setStatus('Chamando Edge Function calculate-scores...');
@@ -163,6 +182,13 @@ function SyncTab() {
           className="px-5 py-2.5 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white font-medium rounded-lg transition"
         >
           {loading ? 'Calculando...' : '📊 Calcular Pontos'}
+        </button>
+        <button
+          onClick={syncResults}
+          disabled={loading}
+          className="px-5 py-2.5 bg-yellow-700 hover:bg-yellow-600 disabled:opacity-50 text-white font-medium rounded-lg transition"
+        >
+          {loading ? 'Sincronizando...' : '⚡ Resultados'}
         </button>
       </div>
 

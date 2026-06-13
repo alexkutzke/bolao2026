@@ -27,6 +27,7 @@ interface MatchCardProps {
     user_id: string;
     home_score: number;
     away_score: number;
+    points: number | null;
     profiles: { name: string } | null;
   }>;
   homeFlag?: string;
@@ -205,13 +206,24 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
         <div className="mt-3 pt-3 border-t border-gray-800/50">
           <p className="text-xs text-gray-600 mb-1.5">Palpites registrados:</p>
           <div className="space-y-1">
-            {allPredictions.map((p: { user_id: string; home_score: number; away_score: number; profiles: { name: string } | null }) => (
+            {[...allPredictions]
+              .sort((a, b) => (a.profiles?.name || '').localeCompare(b.profiles?.name || ''))
+              .map((p: { user_id: string; home_score: number; away_score: number; points: number | null; profiles: { name: string } | null }) => (
               <div key={p.user_id} className="flex items-center justify-between text-xs">
-                <span className="text-gray-400 truncate max-w-[120px]">
+                <span className="text-gray-400 truncate max-w-[100px]">
                   {p.profiles?.name || 'Anônimo'}
                 </span>
-                <span className="font-medium tabular-nums text-gray-300">
-                  {p.home_score} × {p.away_score}
+                <span className="flex items-center gap-2">
+                  <span className="font-medium tabular-nums text-gray-300">
+                    {p.home_score} × {p.away_score}
+                  </span>
+                  {match.finished && p.points !== null && (
+                    <span className={`font-bold tabular-nums ${
+                      p.points > 0 ? 'text-green-400' : 'text-gray-600'
+                    }`}>
+                      {p.points}p
+                    </span>
+                  )}
                 </span>
               </div>
             ))}
