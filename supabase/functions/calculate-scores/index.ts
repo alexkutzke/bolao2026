@@ -99,13 +99,18 @@ Deno.serve(async (req) => {
 
     // Save rankings snapshot for position change tracking
     for (const stage of ['group', 'knockout']) {
-      const { data: leaderboard } = await supabase
+      const { data: leaderboard, error: lbError } = await supabase
         .from('predictions')
-        .select('user_id, points')
+        .select('user_id, points, matches!inner(stage)')
         .eq('matches.stage', stage)
         .not('points', 'is', null);
 
-      if (leaderboard) {
+      if (lbError) {
+        console.error(`Snapshot query error for ${stage}:`, lbError);
+        continue;
+      }
+
+      if (leaderboard && leaderboard.length > 0) {
         // Aggregate points per user
         const totals = new Map<string, number>();
         for (const row of leaderboard) {
