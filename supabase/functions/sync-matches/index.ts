@@ -6,25 +6,26 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const API_BASE = 'https://worldcup26.ir';
 
-// Stadium ID → UTC offset for date conversion
-// Eastern = GMT-5, Central = GMT-6, Western = GMT-8
+// Stadium ID → UTC offset for date conversion (June 2026, DST applied)
+// Eastern: EDT/GMT-4, Central: CDT/GMT-5, Mountain: MDT/GMT-6, Western: PDT/GMT-7
+// Mexico: CST/GMT-6 (no DST since 2022)
 const STADIUM_OFFSETS: Record<string, number> = {
-  '1': -6,  // Estadio Azteca, Mexico City — Central
-  '2': -6,  // Estadio Akron, Guadalajara — Central
-  '3': -6,  // Estadio BBVA, Monterrey — Central
-  '4': -6,  // AT&T Stadium, Dallas — Central
-  '5': -6,  // NRG Stadium, Houston — Central
-  '6': -6,  // Arrowhead, Kansas City — Central
-  '7': -5,  // Mercedes-Benz, Atlanta — Eastern
-  '8': -5,  // Hard Rock, Miami — Eastern
-  '9': -5,  // Gillette, Boston — Eastern
-  '10': -5, // Lincoln Financial, Philadelphia — Eastern
-  '11': -5, // MetLife, NY/NJ — Eastern
-  '12': -5, // BMO Field, Toronto — Eastern
-  '13': -8, // BC Place, Vancouver — Western
-  '14': -8, // Lumen Field, Seattle — Western
-  '15': -8, // Levi's, San Francisco — Western
-  '16': -8, // SoFi, Los Angeles — Western
+  '1': -6,  // Estadio Azteca, Mexico City — CST
+  '2': -6,  // Estadio Akron, Guadalajara — CST
+  '3': -6,  // Estadio BBVA, Monterrey — CST
+  '4': -5,  // AT&T Stadium, Dallas — CDT
+  '5': -5,  // NRG Stadium, Houston — CDT
+  '6': -5,  // Arrowhead, Kansas City — CDT
+  '7': -4,  // Mercedes-Benz, Atlanta — EDT
+  '8': -4,  // Hard Rock, Miami — EDT
+  '9': -4,  // Gillette, Boston — EDT
+  '10': -4, // Lincoln Financial, Philadelphia — EDT
+  '11': -4, // MetLife, NY/NJ — EDT
+  '12': -4, // BMO Field, Toronto — EDT
+  '13': -7, // BC Place, Vancouver — PDT
+  '14': -7, // Lumen Field, Seattle — PDT
+  '15': -7, // Levi's, San Francisco — PDT
+  '16': -7, // SoFi, Los Angeles — PDT
 };
 
 interface ApiGame {
