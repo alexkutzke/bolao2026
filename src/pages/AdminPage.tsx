@@ -128,11 +128,13 @@ function SyncTab() {
     setLoading(false);
   }
 
-  async function calculateAllScores() {
+  async function calculateAllScores(e?: React.MouseEvent) {
+    const force = e?.shiftKey ?? false;
     setLoading(true);
-    setStatus('Chamando Edge Function calculate-scores...');
+    setStatus(force ? 'Recalculando TODOS os pontos...' : 'Calculando pontos pendentes...');
     try {
-      const { data, error } = await supabase.functions.invoke('calculate-scores');
+      const url = force ? 'calculate-scores?force=true' : 'calculate-scores';
+      const { data, error } = await supabase.functions.invoke(url);
 
       if (error) {
         setStatus(`❌ Erro na Edge Function: ${error.message}`);
@@ -179,6 +181,7 @@ function SyncTab() {
         <button
           onClick={calculateAllScores}
           disabled={loading}
+          title="Segure Shift para recalcular TODOS os pontos"
           className="px-5 py-2.5 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white font-medium rounded-lg transition"
         >
           {loading ? 'Calculando...' : '📊 Calcular Pontos'}

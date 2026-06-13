@@ -38,12 +38,19 @@ function calculatePoints(
   return { points: 0, detail: null };
 }
 
-Deno.serve(async (_req) => {
+Deno.serve(async (req) => {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
+
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers });
+  }
+
+  const force = new URL(req.url).searchParams.get('force') === 'true';
 
   try {
     // Get all finished matches with scores
@@ -66,14 +73,14 @@ Deno.serve(async (_req) => {
     for (const match of finishedMatches) {
       const { data: preds, error: predError } = await supabase
         .from('predictions')
-        .select('id, home_score, away_score')
-        .eq('match_id', match.id)
-        .is('points', null);
+        .select('id, home_score, away_score, points')
+        .eq('match_id', match.id);
 
       if (predError) continue;
-      if (!preds) continue;
 
-      for (const pred of preds) {
+      const toScore = force ? preds : (preds?.filter((p) => p.points === null) || []);
+
+      for (const pred of toScore) {
         const result = calculatePoints(
           pred.home_score,
           pred.away_score,
