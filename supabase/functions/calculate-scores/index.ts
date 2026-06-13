@@ -13,29 +13,53 @@ function calculatePoints(
   const predWinner = Math.sign(predHome - predAway);
   const actualWinner = Math.sign(actualHome - actualAway);
 
-  // 10 pts: exact score
   if (predHome === actualHome && predAway === actualAway) {
     return { points: 10, detail: 'exact' };
   }
 
-  // 7 pts: correct winner + correct goal difference
   if (predWinner === actualWinner && predWinner !== 0) {
     if (predHome - predAway === actualHome - actualAway) {
       return { points: 7, detail: 'winner_diff' };
     }
   }
 
-  // 4 pts: correct winner or draw
   if (predWinner === actualWinner) {
     return { points: 4, detail: 'winner' };
   }
 
-  // 2 pts: correct goals for one team
   if (predHome === actualHome || predAway === actualAway) {
     return { points: 2, detail: 'one_team_goals' };
   }
 
   return { points: 0, detail: null };
+}
+
+async function saveRankingsSnapshot() {
+  for (const stage of ['group', 'knockout']) {
+    const { data: leaderboard, error } = await supabase
+      .from('predictions')
+      .select('user_id, points, matches!inner(stage)')
+      .eq('matches.stage', stage)
+      .not('points', 'is', null);
+
+    if (error || !leaderboard || leaderboard.length === 0) continue;
+
+    const totals = new Map<string, number>();
+    for (const row of leaderboard) {
+      totals.set(row.user_id, (totals.get(row.user_id) || 0) + row.points);
+    }
+    const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1]);
+    for (let i = 0; i < sorted.length; i++) {
+      const [userId, pts] = sorted[i];
+      await supabase.from('rankings_snapshot').upsert({
+        stage,
+        user_id: userId,
+        position: i + 1,
+        total_points: pts,
+        updated_at: new Date().toISOString(),
+      });
+    }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -45,15 +69,17 @@ Deno.serve(async (req) => {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
 
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers });
   }
 
   const force = new URL(req.url).searchParams.get('force') === 'true';
 
+  // Save current rankings as snapshot BEFORE calculating new scores
+  // This preserves the "before" state so the frontend can show ▲/▼/■
+  await saveRankingsSnapshot();
+
   try {
-    // Get all finished matches with scores
     const { data: finishedMatches, error: matchError } = await supabase
       .from('matches')
       .select('id, home_score, away_score')
@@ -94,42 +120,6 @@ Deno.serve(async (req) => {
           .eq('id', pred.id);
 
         if (!error) calculated++;
-      }
-    }
-
-    // Save rankings snapshot for position change tracking
-    for (const stage of ['group', 'knockout']) {
-      const { data: leaderboard, error: lbError } = await supabase
-        .from('predictions')
-        .select('user_id, points, matches!inner(stage)')
-        .eq('matches.stage', stage)
-        .not('points', 'is', null);
-
-      if (lbError) {
-        console.error(`Snapshot query error for ${stage}:`, lbError);
-        continue;
-      }
-
-      if (leaderboard && leaderboard.length > 0) {
-        // Aggregate points per user
-        const totals = new Map<string, number>();
-        for (const row of leaderboard) {
-          totals.set(row.user_id, (totals.get(row.user_id) || 0) + row.points);
-        }
-        // Sort by points desc and assign positions
-        const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1]);
-        for (let i = 0; i < sorted.length; i++) {
-          const [userId, pts] = sorted[i];
-          await supabase
-            .from('rankings_snapshot')
-            .upsert({
-              stage,
-              user_id: userId,
-              position: i + 1,
-              total_points: pts,
-              updated_at: new Date().toISOString(),
-            });
-        }
       }
     }
 
