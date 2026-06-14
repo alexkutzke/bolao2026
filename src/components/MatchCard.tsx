@@ -47,12 +47,16 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
       ? `Grupo ${match.group_name} · Rodada ${match.matchday}`
       : match.group_name;
 
+  const needsPrediction = !isPast && !match.finished && !prediction && !!onPredict;
+
   // Visual state
   const cardClass = match.finished
     ? 'border-gray-700/50 bg-gray-900/20 opacity-60'
     : isPast
       ? 'border-gray-700 bg-gray-900/40'
-      : 'border-gray-700 bg-gray-900/60 hover:border-green-700 hover:bg-gray-900/80';
+      : needsPrediction
+        ? 'border-yellow-600/60 bg-yellow-900/10 ring-1 ring-yellow-600/30 hover:border-yellow-500 hover:bg-yellow-900/20'
+        : 'border-gray-700 bg-gray-900/60 hover:border-green-700 hover:bg-gray-900/80';
 
   return (
     <div className={`rounded-xl border p-4 transition ${cardClass}`}>
@@ -71,9 +75,9 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
             Em andamento
           </span>
         )}
-        {!isPast && !match.finished && (
+        {!isPast && !match.finished && !!onPredict && (
           <span className="text-xs px-2 py-0.5 rounded-full bg-blue-900/50 text-blue-400 font-medium">
-            A definir
+            {prediction ? 'Palpitado' : 'Palpitar'}
           </span>
         )}
       </div>
