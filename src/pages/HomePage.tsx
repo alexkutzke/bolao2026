@@ -47,6 +47,19 @@ export function HomePage() {
   }, [matches, stage, groupFilter, matchdayFilter, statusFilter]);
 
   // Todos os palpites (de todos os usuários) para os jogos filtrados
+  // Count today's upcoming games without prediction
+  const todayMissed = useMemo(() => {
+    const now = new Date();
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    return filtered.filter((m) => {
+      if (m.finished) return false;
+      const d = new Date(m.match_date);
+      return d > now && d <= todayEnd && !predictionMap.has(m.id);
+    }).length;
+  }, [filtered, predictionMap]);
+
   const filteredMatchIds = useMemo(() => filtered.map((m) => m.id), [filtered]);
   const { predictions: allPredictions } = useAllPredictions(filteredMatchIds);
   const { teamMap } = useTeams();
@@ -210,6 +223,17 @@ export function HomePage() {
             <option value="upcoming">A definir / Em andamento</option>
             <option value="finished">Encerrados</option>
           </select>
+        </div>
+      )}
+
+      {!loading && todayMissed > 0 && (
+        <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg flex items-center gap-2">
+          <span className="text-yellow-400">⚠️</span>
+          <p className="text-sm text-yellow-300">
+            Você ainda não palpitou em{' '}
+            <strong>{todayMissed}</strong>{' '}
+            {todayMissed === 1 ? 'jogo' : 'jogos'} de hoje!
+          </p>
         </div>
       )}
 
