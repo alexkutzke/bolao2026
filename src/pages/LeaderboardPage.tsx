@@ -18,6 +18,7 @@ function ChangeIcon({ change }: { change: LeaderboardEntry['change'] }) {
 
 export function LeaderboardPage() {
   const [stage, setStage] = useState<CompetitionSlug>('group');
+  const [rulesOpen, setRulesOpen] = useState(false);
   const { entries, loading } = useLeaderboard(stage);
 
   const stageLabel = stage === 'group' ? 'Fase de Grupos' : 'Mata-mata';
@@ -60,8 +61,18 @@ export function LeaderboardPage() {
       {!loading && entries.length > 0 && (
         <div className="overflow-x-auto">
           {/* Critérios de pontuação */}
-          <div className="bg-gray-900/70 rounded-xl border border-gray-800 p-5 mb-6">
-            <h3 className="text-sm font-semibold text-gray-300 mb-3">📋 Como funciona a pontuação</h3>
+          <div className="bg-gray-900/70 rounded-xl border border-gray-800 mb-6">
+            <button
+              onClick={() => setRulesOpen(!rulesOpen)}
+              className="w-full p-5 flex items-center justify-between text-left hover:bg-gray-800/30 transition rounded-xl"
+            >
+              <h3 className="text-sm font-semibold text-gray-300">📋 Como funciona a pontuação</h3>
+              <span className="text-gray-500 text-sm transition-transform" style={{ transform: rulesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                ▼
+              </span>
+            </button>
+            {rulesOpen && (
+            <div className="px-5 pb-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/20 border border-green-800/50">
                 <span className="text-lg font-bold text-green-400 shrink-0">10</span>
@@ -95,6 +106,8 @@ export function LeaderboardPage() {
             <p className="text-xs text-gray-500 mt-3">
               ⚠️ Apenas a <strong>maior pontuação</strong> é atribuída por jogo — as categorias não acumulam.
             </p>
+            </div>
+            )}
           </div>
 
           <table className="w-full text-sm">
