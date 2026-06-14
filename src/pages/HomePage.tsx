@@ -63,18 +63,20 @@ export function HomePage() {
     return map;
   }, [allPredictions]);
 
-  // Split into future and past, then group each by date (Brasília time).
-  // Games before 6 AM are shifted to previous day for grouping.
-  const { futureGroups, pastGroups } = useMemo(() => {
+  // Split into live, upcoming, and finished. Group each by date (Brasília time).
+  const { liveGroups, upcomingGroups, finishedGroups } = useMemo(() => {
     const now = new Date();
-    const future: Match[] = [];
-    const past: Match[] = [];
+    const live: Match[] = [];
+    const upcoming: Match[] = [];
+    const finished: Match[] = [];
 
     for (const match of filtered) {
-      if (new Date(match.match_date) >= now) {
-        future.push(match);
+      if (match.finished) {
+        finished.push(match);
+      } else if (new Date(match.match_date) <= now) {
+        live.push(match);
       } else {
-        past.push(match);
+        upcoming.push(match);
       }
     }
 
@@ -110,8 +112,9 @@ export function HomePage() {
     }
 
     return {
-      futureGroups: groupByDate(future),
-      pastGroups: groupByDate(past),
+      liveGroups: groupByDate(live),
+      upcomingGroups: groupByDate(upcoming),
+      finishedGroups: groupByDate(finished),
     };
   }, [filtered]);
 
@@ -224,9 +227,34 @@ export function HomePage() {
 
       {!loading && !error && (stage === 'group' || !checkingGroupStage) && (stage === 'group' || groupStageDone) && (
         <div className="space-y-8">
-          {/* FUTURE GAMES */}
-          {futureGroups.map((group) => (
-            <div key={'f-' + group.date}>
+          {/* LIVE GAMES */}
+          {liveGroups.map((group) => (
+            <div key={'live-' + group.date}>
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                {group.date}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {group.matches.map((match) => (
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                    prediction={predictionMap.get(match.id) || null}
+                    allPredictions={allPredictionsByMatch.get(match.id) || []}
+                    homeFlag={teamMap.get(match.home_team_id)}
+                    awayFlag={teamMap.get(match.away_team_id)}
+                    stadiumName={stadiumMap.get(match.stadium)}
+                    onPredict={(h, a) => handlePredict(match.id, h, a)}
+                    saving={savingId === match.id}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* UPCOMING GAMES */}
+          {upcomingGroups.map((group) => (
+            <div key={'up-' + group.date}>
               <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                 {group.date}
@@ -249,16 +277,16 @@ export function HomePage() {
             </div>
           ))}
 
-          {/* Divider + PAST GAMES */}
-          {pastGroups.length > 0 && (
+          {/* Divider + FINISHED GAMES */}
+          {finishedGroups.length > 0 && (
             <>
               <div className="flex items-center gap-3 py-2">
                 <hr className="flex-1 border-gray-800" />
                 <span className="text-xs text-gray-600 font-medium uppercase">Jogos encerrados</span>
                 <hr className="flex-1 border-gray-800" />
               </div>
-              {pastGroups.map((group) => (
-                <div key={'p-' + group.date}>
+              {finishedGroups.map((group) => (
+                <div key={'fin-' + group.date}>
                   <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-gray-600" />
                     {group.date}
