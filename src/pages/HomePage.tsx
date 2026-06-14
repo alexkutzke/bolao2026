@@ -226,7 +226,7 @@ export function HomePage() {
         </div>
       )}
 
-      {!loading && todayMissed > 0 && (
+      {!loading && (todayMissed > 0 ? (
         <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg flex items-center gap-2">
           <span className="text-yellow-400">⚠️</span>
           <p className="text-sm text-yellow-300">
@@ -235,7 +235,16 @@ export function HomePage() {
             {todayMissed === 1 ? 'jogo' : 'jogos'} de hoje!
           </p>
         </div>
-      )}
+      ) : (
+        <div className="mb-4 p-3 bg-green-900/20 border border-green-700/50 rounded-lg flex items-center gap-2">
+          <span className="text-green-400">✅</span>
+          <p className="text-sm text-green-300">
+            {filtered.filter(m => !m.finished).length === 0
+              ? 'Nenhum jogo pendente para hoje.'
+              : 'Todos os jogos de hoje foram palpitados!'}
+          </p>
+        </div>
+      ))}
 
       {loading && <LoadingSpinner />}
       {error && <p className="text-red-400 text-center py-8">{error}</p>}
