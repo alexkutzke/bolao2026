@@ -11,12 +11,16 @@ interface ApiGame {
   finished: string;
 }
 
-Deno.serve(async (_req) => {
+Deno.serve(async (req) => {
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
+
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers });
+  }
 
   try {
     const res = await fetch('https://worldcup26.ir/get/games');
