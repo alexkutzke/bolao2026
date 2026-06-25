@@ -146,11 +146,11 @@ CREATE POLICY "Members can delete own predictions"
   TO authenticated
   USING (user_id = auth.uid());
 
--- Rankings snapshot RLS
+-- Rankings snapshot RLS (drop old policy if it exists)
 DO $$
 BEGIN
-  ALTER TABLE public.rankings_snapshot DROP POLICY "Rankings snapshot viewable by authenticated users";
-EXCEPTION WHEN undefined_object THEN NULL;
+  EXECUTE 'ALTER TABLE public.rankings_snapshot DROP POLICY IF EXISTS "Rankings snapshot viewable by authenticated users"';
+EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
 CREATE POLICY "Members can view rankings in their bolao"
