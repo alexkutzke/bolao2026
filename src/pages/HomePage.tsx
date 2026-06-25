@@ -311,6 +311,9 @@ export function HomePage() {
                     homeFlag={teamMap.get(match.home_team_id)}
                     awayFlag={teamMap.get(match.away_team_id)}
                     stadiumName={stadiumMap.get(match.stadium)}
+                    homeForm={historyMap.get(match.home_team_id)}
+                    awayForm={historyMap.get(match.away_team_id)}
+                    globalOdds={oddsMap.get(match.id) || null}
                     onPredict={(h, a) => handlePredict(match.id, h, a)}
                     saving={savingId === match.id}
                   />
