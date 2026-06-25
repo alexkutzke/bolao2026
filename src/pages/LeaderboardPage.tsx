@@ -20,7 +20,7 @@ function ChangeIcon({ change }: { change: LeaderboardEntry['change'] }) {
 export function LeaderboardPage() {
   const [stage, setStage] = useState<CompetitionSlug>('group');
   const [rulesOpen, setRulesOpen] = useState(false);
-  const { activeBolao } = useApp();
+  const { activeBolao, user } = useApp();
   const { entries, loading } = useLeaderboard(stage, activeBolao?.id);
 
   const stageLabel = stage === 'group' ? 'Fase de Grupos' : 'Mata-mata';
@@ -128,9 +128,11 @@ export function LeaderboardPage() {
               {entries.map((entry, index) => (
                 <tr
                   key={entry.user_id}
-                  className={`border-b border-gray-800/50 hover:bg-gray-900/50 transition ${
-                    index < 3 ? 'font-semibold' : ''
-                  }`}
+                  className={`border-b transition ${
+                    entry.user_id === user?.id
+                      ? 'bg-green-900/30 border-green-800/50 ring-1 ring-green-700/50'
+                      : 'border-gray-800/50 hover:bg-gray-900/50'
+                  } ${index < 3 ? 'font-semibold' : ''}`}
                 >
                   <td className="py-3 px-2">
                     <span
