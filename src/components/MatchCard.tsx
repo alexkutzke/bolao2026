@@ -264,7 +264,7 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
             {odds.mostCommonScore && (
               <span>Mais comum: <span className="text-gray-300">{odds.mostCommonScore}</span></span>
             )}
-            <span>Média: {odds.avgHomeGoals} × {odds.avgAwayGoals}</span>
+            <span>Média de gols: {odds.avgHomeGoals} × {odds.avgAwayGoals}</span>
           </div>
         </div>
       )}
