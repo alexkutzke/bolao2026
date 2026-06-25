@@ -19,3 +19,6 @@ Thumbs.db
 
 # Supabase temp
 supabase/.temp/
+
+# Backups
+backup_bolao.sql
