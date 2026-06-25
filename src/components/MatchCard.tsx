@@ -34,9 +34,11 @@ interface MatchCardProps {
   homeFlag?: string;
   awayFlag?: string;
   stadiumName?: string;
+  homeForm?: { last5: ('W' | 'D' | 'L')[]; goalsFor: number; goalsAgainst: number };
+  awayForm?: { last5: ('W' | 'D' | 'L')[]; goalsFor: number; goalsAgainst: number };
 }
 
-export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, onPredict, saving }: MatchCardProps) {
+export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, homeForm, awayForm, onPredict, saving }: MatchCardProps) {
   const [editing, setEditing] = useState(false);
   const [showPredictions, setShowPredictions] = useState(false);
   const odds = useMemo(() => computeOdds(allPredictions || []), [allPredictions]);
@@ -94,6 +96,7 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
           <p className="text-sm font-semibold truncate">
             {match.home_team_label || match.home_team_name}
           </p>
+          {homeForm && <FormDots form={homeForm.last5} />}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -113,6 +116,7 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
           <p className="text-sm font-semibold truncate">
             {match.away_team_label || match.away_team_name}
           </p>
+          {awayForm && <FormDots form={awayForm.last5} />}
         </div>
       </div>
 
@@ -338,6 +342,22 @@ function Bar({ label, pct, color }: { label: string; pct: number; color: string 
         />
       </div>
       <span className="w-8 text-right text-gray-400 tabular-nums">{pct}%</span>
+    </div>
+  );
+}
+
+function FormDots({ form }: { form: ('W' | 'D' | 'L')[] }) {
+  return (
+    <div className="flex justify-center gap-0.5 mt-0.5">
+      {form.map((r, i) => (
+        <span
+          key={i}
+          className={`w-2 h-2 rounded-full ${
+            r === 'W' ? 'bg-green-500' : r === 'D' ? 'bg-gray-500' : 'bg-red-500'
+          }`}
+          title={r === 'W' ? 'Vitória' : r === 'D' ? 'Empate' : 'Derrota'}
+        />
+      ))}
     </div>
   );
 }
