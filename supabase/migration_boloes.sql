@@ -110,9 +110,15 @@ CREATE POLICY "Admins can delete bolao members"
   TO authenticated
   USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
--- Atualizar RLS de predictions: membro do bolão pode ver palpites daquele bolão
-DROP POLICY IF EXISTS "Authenticated users can view all predictions" ON public.predictions;
-DROP POLICY IF EXISTS "Users can view own predictions" ON public.predictions;
+-- Atualizar RLS de predictions
+DO $$ BEGIN
+  DROP POLICY "Authenticated users can view all predictions" ON public.predictions;
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
+DO $$ BEGIN
+  DROP POLICY "Users can view own predictions" ON public.predictions;
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
 
 CREATE POLICY "Members can view predictions in their bolao"
   ON public.predictions FOR SELECT
@@ -140,8 +146,12 @@ CREATE POLICY "Members can delete own predictions"
   TO authenticated
   USING (user_id = auth.uid());
 
--- Rankings snapshot: membros veem ranking do seu bolão
-ALTER TABLE public.rankings_snapshot DROP POLICY IF EXISTS "Rankings snapshot viewable by authenticated users";
+-- Rankings snapshot RLS
+DO $$
+BEGIN
+  ALTER TABLE public.rankings_snapshot DROP POLICY "Rankings snapshot viewable by authenticated users";
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
 
 CREATE POLICY "Members can view rankings in their bolao"
   ON public.rankings_snapshot FOR SELECT
