@@ -285,6 +285,7 @@ export function HomePage() {
                     stadiumName={stadiumMap.get(match.stadium)}
                     homeForm={historyMap.get(match.home_team_id)}
                     awayForm={historyMap.get(match.away_team_id)}
+                    globalOdds={oddsMap.get(match.id) || null}
                     onPredict={(h, a) => handlePredict(match.id, h, a)}
                     saving={savingId === match.id}
                   />
@@ -344,6 +345,7 @@ export function HomePage() {
                         stadiumName={stadiumMap.get(match.stadium)}
                         homeForm={historyMap.get(match.home_team_id)}
                         awayForm={historyMap.get(match.away_team_id)}
+                        globalOdds={oddsMap.get(match.id) || null}
                         onPredict={(h, a) => handlePredict(match.id, h, a)}
                         saving={savingId === match.id}
                       />
