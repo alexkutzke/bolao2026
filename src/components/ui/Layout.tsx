@@ -39,9 +39,7 @@ export function Layout() {
           </Link>
 
           {/* Bolão selector — always visible */}
-          <div className="flex-1 flex justify-center md:justify-start md:flex-none mx-2">
-            <BolaoSelector />
-          </div>
+          <BolaoSelector />
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
