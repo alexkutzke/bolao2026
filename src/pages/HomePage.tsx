@@ -6,6 +6,7 @@ import { MatchCard } from '../components/MatchCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { useTeams } from '../hooks/useTeams';
 import { useStadiums } from '../hooks/useStadiums';
+import { useApp } from '../contexts/AuthContext';
 import type { CompetitionSlug, Prediction, Match } from '../types';
 
 export function HomePage() {
@@ -19,6 +20,7 @@ export function HomePage() {
   const { allFinished: groupStageDone, loading: checkingGroupStage } = useGroupStageComplete();
   const { predictions, savePrediction } = usePredictions();
   const [savingId, setSavingId] = useState<number | null>(null);
+  const { activeBolao } = useApp();
 
   const predictionMap = useMemo(() => {
     const map = new Map<number, Prediction>();
@@ -61,7 +63,7 @@ export function HomePage() {
   }, [filtered, predictionMap]);
 
   const filteredMatchIds = useMemo(() => filtered.map((m) => m.id), [filtered]);
-  const { predictions: allPredictions } = useAllPredictions(filteredMatchIds);
+  const { predictions: allPredictions } = useAllPredictions(filteredMatchIds, activeBolao?.id);
   const { teamMap } = useTeams();
   const { stadiumMap } = useStadiums();
 

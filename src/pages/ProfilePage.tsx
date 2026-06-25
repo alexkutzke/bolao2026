@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AuthContext';
 
 export function ProfilePage() {
-  const { profile, user } = useAuth();
+  const { profile, user } = useApp();
   const [name, setName] = useState(profile?.name || '');
   const [email, setEmail] = useState(profile?.email || '');
   const [newPassword, setNewPassword] = useState('');

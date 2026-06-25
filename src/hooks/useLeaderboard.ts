@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import type { CompetitionSlug } from '../types';
 
 export interface LeaderboardEntry {
   user_id: string;
@@ -13,26 +12,28 @@ export interface LeaderboardEntry {
   change: 'up' | 'down' | 'same' | null;
 }
 
-export function useLeaderboard(stage: CompetitionSlug) {
+export function useLeaderboard(stage: string, bolaoId: string | undefined) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLeaderboard = useCallback(async () => {
+    if (!bolaoId) { setLoading(false); return; }
     setLoading(true);
 
     const [currentRes, snapshotRes] = await Promise.all([
       supabase
         .from('predictions')
         .select(`points, points_detail, user_id, match_id, profiles!inner(name), matches!inner(stage)`)
+        .eq('bolao_id', bolaoId)
         .eq('matches.stage', stage)
         .not('points', 'is', null),
       supabase
         .from('rankings_snapshot')
         .select('user_id, position')
+        .eq('bolao_id', bolaoId)
         .eq('stage', stage),
     ]);
 
-    // Build current ranking
     const map = new Map<string, LeaderboardEntry>();
     if (currentRes.data) {
       for (const row of currentRes.data) {
@@ -57,7 +58,6 @@ export function useLeaderboard(stage: CompetitionSlug) {
 
     const sorted = [...map.values()].sort((a, b) => b.total_points - a.total_points);
 
-    // Compare with snapshot to determine position changes
     if (snapshotRes.data && snapshotRes.data.length > 0) {
       const prevPos = new Map(snapshotRes.data.map((s) => [s.user_id, s.position]));
       sorted.forEach((entry, idx) => {
@@ -68,14 +68,14 @@ export function useLeaderboard(stage: CompetitionSlug) {
           else if (curr > prev) entry.change = 'down';
           else entry.change = 'same';
         } else {
-          entry.change = null; // new player
+          entry.change = null;
         }
       });
     }
 
     setEntries(sorted);
     setLoading(false);
-  }, [stage]);
+  }, [stage, bolaoId]);
 
   useEffect(() => {
     fetchLeaderboard();

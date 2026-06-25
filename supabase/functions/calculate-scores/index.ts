@@ -16,29 +16,26 @@ function calculatePoints(
   if (predHome === actualHome && predAway === actualAway) {
     return { points: 10, detail: 'exact' };
   }
-
   if (predWinner === actualWinner && predWinner !== 0) {
     if (predHome - predAway === actualHome - actualAway) {
       return { points: 7, detail: 'winner_diff' };
     }
   }
-
   if (predWinner === actualWinner) {
     return { points: 4, detail: 'winner' };
   }
-
   if (predHome === actualHome || predAway === actualAway) {
     return { points: 2, detail: 'one_team_goals' };
   }
-
   return { points: 0, detail: null };
 }
 
-async function saveRankingsSnapshot() {
+async function saveRankingsSnapshot(bolaoId: string) {
   for (const stage of ['group', 'knockout']) {
     const { data: leaderboard, error } = await supabase
       .from('predictions')
       .select('user_id, points, matches!inner(stage)')
+      .eq('bolao_id', bolaoId)
       .eq('matches.stage', stage)
       .not('points', 'is', null);
 
@@ -52,6 +49,7 @@ async function saveRankingsSnapshot() {
     for (let i = 0; i < sorted.length; i++) {
       const [userId, pts] = sorted[i];
       await supabase.from('rankings_snapshot').upsert({
+        bolao_id: bolaoId,
         stage,
         user_id: userId,
         position: i + 1,
@@ -75,11 +73,26 @@ Deno.serve(async (req) => {
 
   const force = new URL(req.url).searchParams.get('force') === 'true';
 
-  // Save current rankings as snapshot BEFORE calculating new scores
-  // This preserves the "before" state so the frontend can show ▲/▼/■
-  await saveRankingsSnapshot();
-
   try {
+    // Get all bolões
+    const { data: boloes, error: boloesError } = await supabase
+      .from('boloes')
+      .select('id, name');
+
+    if (boloesError) throw new Error(boloesError.message);
+    if (!boloes || boloes.length === 0) {
+      return new Response(
+        JSON.stringify({ success: true, calculated: 0, message: 'No boloes found' }),
+        { headers },
+      );
+    }
+
+    // Save snapshots BEFORE calculating
+    for (const bolao of boloes) {
+      await saveRankingsSnapshot(bolao.id);
+    }
+
+    // Calculate scores for all boloes
     const { data: finishedMatches, error: matchError } = await supabase
       .from('matches')
       .select('id, home_score, away_score')
@@ -90,7 +103,7 @@ Deno.serve(async (req) => {
     if (matchError) throw new Error(matchError.message);
     if (!finishedMatches || finishedMatches.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, calculated: 0, message: 'No finished matches with scores' }),
+        JSON.stringify({ success: true, calculated: 0, message: 'No finished matches' }),
         { headers },
       );
     }
@@ -99,7 +112,7 @@ Deno.serve(async (req) => {
     for (const match of finishedMatches) {
       const { data: preds, error: predError } = await supabase
         .from('predictions')
-        .select('id, home_score, away_score, points')
+        .select('id, bolao_id, home_score, away_score, points')
         .eq('match_id', match.id);
 
       if (predError) continue;
@@ -124,7 +137,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, calculated }),
+      JSON.stringify({ success: true, calculated, boloes: boloes.length }),
       { headers },
     );
   } catch (err) {

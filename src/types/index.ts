@@ -63,6 +63,7 @@ export interface Prediction {
   id: number;
   user_id: string;
   match_id: number;
+  bolao_id: string;
   home_score: number;
   away_score: number;
   points: number | null;
@@ -83,3 +84,10 @@ export interface LeaderboardEntry {
 }
 
 export type CompetitionSlug = 'group' | 'knockout';
+
+export interface Bolao {
+  id: string;
+  name: string;
+  created_by: string;
+  created_at: string;
+}

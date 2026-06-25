@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLeaderboard, type LeaderboardEntry } from '../hooks/useLeaderboard';
+import { useApp } from '../contexts/AuthContext';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import type { CompetitionSlug } from '../types';
 
@@ -19,7 +20,8 @@ function ChangeIcon({ change }: { change: LeaderboardEntry['change'] }) {
 export function LeaderboardPage() {
   const [stage, setStage] = useState<CompetitionSlug>('group');
   const [rulesOpen, setRulesOpen] = useState(false);
-  const { entries, loading } = useLeaderboard(stage);
+  const { activeBolao } = useApp();
+  const { entries, loading } = useLeaderboard(stage, activeBolao?.id);
 
   const stageLabel = stage === 'group' ? 'Fase de Grupos' : 'Mata-mata';
 

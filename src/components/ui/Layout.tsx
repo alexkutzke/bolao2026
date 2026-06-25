@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useApp } from '../../contexts/AuthContext';
+import { BolaoSelector } from '../BolaoSelector';
 
 export function Layout() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut } = useApp();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -39,6 +40,7 @@ export function Layout() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
+            <BolaoSelector />
             {navLinks.map((link) => (
               <Link key={link.to} to={link.to} className={linkClass(link.to)}>
                 {link.label}

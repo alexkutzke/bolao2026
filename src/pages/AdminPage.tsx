@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AuthContext';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import type { Match } from '../types';
 
 export function AdminPage() {
-  const { profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'sync' | 'results' | 'users'>('sync');
+  const { profile } = useApp();
+  const [activeTab, setActiveTab] = useState<'sync' | 'results' | 'users' | 'boloes'>('sync');
 
   if (!profile?.is_admin) {
     return (
@@ -25,6 +25,7 @@ export function AdminPage() {
           { key: 'sync' as const, label: 'Sincronização' },
           { key: 'results' as const, label: 'Lançar Resultados' },
           { key: 'users' as const, label: 'Usuários' },
+          { key: 'boloes' as const, label: 'Bolões' },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -43,6 +44,7 @@ export function AdminPage() {
       {activeTab === 'sync' && <SyncTab />}
       {activeTab === 'results' && <ManualResultsTab />}
       {activeTab === 'users' && <UsersTab />}
+      {activeTab === 'boloes' && <BoloesTab />}
     </div>
   );
 }
@@ -573,6 +575,157 @@ function UsersTab() {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Bolões Tab ──────────────────────────────── */
+
+function BoloesTab() {
+  const [boloes, setBoloes] = useState<{ id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [status, setStatus] = useState('');
+  const [selectedBolao, setSelectedBolao] = useState<string | null>(null);
+  const [members, setMembers] = useState<{ user_id: string; profiles: { name: string; email: string } | { name: string; email: string }[] }[]>([]);
+  const [allUsers, setAllUsers] = useState<{ id: string; name: string; email: string }[]>([]);
+  const [addUserId, setAddUserId] = useState('');
+
+  const loadBoloes = useCallback(async () => {
+    const { data } = await supabase.from('boloes').select('id, name').order('name');
+    setBoloes(data || []);
+    setLoading(false);
+  }, []);
+
+  const loadMembers = useCallback(async (bolaoId: string) => {
+    const { data } = await supabase
+      .from('bolao_members')
+      .select('user_id, profiles(name, email)')
+      .eq('bolao_id', bolaoId);
+    setMembers(data || []);
+  }, []);
+
+  const loadAllUsers = useCallback(async () => {
+    const { data } = await supabase.from('profiles').select('id, name, email').order('name');
+    setAllUsers(data || []);
+  }, []);
+
+  useEffect(() => { loadBoloes(); loadAllUsers(); }, [loadBoloes, loadAllUsers]);
+  useEffect(() => {
+    if (selectedBolao) loadMembers(selectedBolao);
+  }, [selectedBolao, loadMembers]);
+
+  async function createBolao(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    setStatus('');
+    const { data, error } = await supabase.functions.invoke('manage-boloes', {
+      body: { action: 'create', name: newName },
+    });
+    if (error) setStatus(`❌ ${error.message}`);
+    else if (data?.error) setStatus(`❌ ${data.error}`);
+    else {
+      setStatus(`✅ Bolão "${newName}" criado!`);
+      setNewName('');
+      loadBoloes();
+    }
+    setCreating(false);
+  }
+
+  async function addMember() {
+    if (!selectedBolao || !addUserId) return;
+    setStatus('');
+    const { data, error } = await supabase.functions.invoke('manage-boloes', {
+      body: { action: 'add_member', bolao_id: selectedBolao, user_id: addUserId },
+    });
+    if (error) setStatus(`❌ ${error.message}`);
+    else if (data?.error) setStatus(`❌ ${data.error}`);
+    else {
+      setStatus('✅ Membro adicionado!');
+      setAddUserId('');
+      loadMembers(selectedBolao);
+    }
+  }
+
+  async function removeMember(userId: string) {
+    if (!selectedBolao) return;
+    const { data, error } = await supabase.functions.invoke('manage-boloes', {
+      body: { action: 'remove_member', bolao_id: selectedBolao, user_id: userId },
+    });
+    if (!error && !data?.error) loadMembers(selectedBolao);
+  }
+
+  if (loading) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+        <h2 className="text-lg font-semibold mb-4">➕ Criar Novo Bolão</h2>
+        <form onSubmit={createBolao} className="flex gap-3 max-w-md">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Nome do bolão"
+            required
+            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+          />
+          <button type="submit" disabled={creating} className="px-5 py-2 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white font-medium rounded-lg transition">
+            {creating ? '...' : 'Criar'}
+          </button>
+        </form>
+        {status && <p className={`mt-3 text-sm ${status.startsWith('✅') ? 'text-green-400' : 'text-red-400'}`}>{status}</p>}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+          <h2 className="text-lg font-semibold mb-4">📋 Bolões ({boloes.length})</h2>
+          <div className="space-y-2">
+            {boloes.map((b) => (
+              <button key={b.id} onClick={() => setSelectedBolao(b.id)}
+                className={`w-full text-left px-4 py-2.5 rounded-lg transition ${selectedBolao === b.id ? 'bg-green-700 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}
+              >
+                {b.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedBolao && (
+          <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+            <h2 className="text-lg font-semibold mb-4">👥 Membros ({members.length})</h2>
+            <div className="flex gap-2 mb-4">
+              <select value={addUserId} onChange={(e) => setAddUserId(e.target.value)}
+                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:border-green-500"
+              >
+                <option value="">Selecionar usuário...</option>
+                {allUsers.filter((u) => !members.some((m) => m.user_id === u.id)).map((u) => (
+                  <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                ))}
+              </select>
+              <button onClick={addMember} disabled={!addUserId}
+                className="px-4 py-2 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white text-sm rounded-lg transition"
+              >
+                + Adicionar
+              </button>
+            </div>
+            <div className="space-y-1">
+              {members.map((m) => (
+                <div key={m.user_id} className="flex items-center justify-between px-3 py-2 bg-gray-800 rounded-lg">
+                  <div>
+                    <p className="text-sm">{Array.isArray(m.profiles) ? m.profiles[0]?.name : m.profiles?.name}</p>
+                    <p className="text-xs text-gray-500">{Array.isArray(m.profiles) ? m.profiles[0]?.email : m.profiles?.email}</p>
+                  </div>
+                  <button onClick={() => removeMember(m.user_id)} className="text-xs text-red-400 hover:text-red-300">
+                    Remover
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
