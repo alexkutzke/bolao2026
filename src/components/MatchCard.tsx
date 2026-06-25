@@ -36,12 +36,28 @@ interface MatchCardProps {
   stadiumName?: string;
   homeForm?: { last5: ('W' | 'D' | 'L')[]; goalsFor: number; goalsAgainst: number };
   awayForm?: { last5: ('W' | 'D' | 'L')[]; goalsFor: number; goalsAgainst: number };
+  globalOdds?: { total: number; home_win_pct: number; draw_pct: number; away_win_pct: number; most_common_score: string | null; avg_home_goals: number; avg_away_goals: number } | null;
 }
 
-export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, homeForm, awayForm, onPredict, saving }: MatchCardProps) {
+export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, homeForm, awayForm, globalOdds, onPredict, saving }: MatchCardProps) {
   const [editing, setEditing] = useState(false);
   const [showPredictions, setShowPredictions] = useState(false);
-  const odds = useMemo(() => computeOdds(allPredictions || []), [allPredictions]);
+  const odds = useMemo(() => {
+    // Prefer global odds (from RPC, includes all bolões)
+    if (globalOdds) {
+      return {
+        total: globalOdds.total,
+        homeWinPct: globalOdds.home_win_pct,
+        drawPct: globalOdds.draw_pct,
+        awayWinPct: globalOdds.away_win_pct,
+        mostCommonScore: globalOdds.most_common_score,
+        avgHomeGoals: globalOdds.avg_home_goals,
+        avgAwayGoals: globalOdds.avg_away_goals,
+      };
+    }
+    // Fallback to local computation (only current bolão)
+    return computeOdds(allPredictions || []);
+  }, [globalOdds, allPredictions]);
   const matchDate = new Date(match.match_date);
   const now = new Date();
   const isPast = matchDate <= now;

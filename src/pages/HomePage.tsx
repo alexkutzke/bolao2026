@@ -6,6 +6,8 @@ import { MatchCard } from '../components/MatchCard';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { useTeams } from '../hooks/useTeams';
 import { useStadiums } from '../hooks/useStadiums';
+import { useTeamHistory } from '../hooks/useTeamHistory';
+import { useGlobalOdds } from '../hooks/useGlobalOdds';
 import { useApp } from '../contexts/AuthContext';
 import type { CompetitionSlug, Prediction, Match } from '../types';
 
@@ -66,6 +68,8 @@ export function HomePage() {
   const { predictions: allPredictions } = useAllPredictions(filteredMatchIds, activeBolao?.id);
   const { teamMap } = useTeams();
   const { stadiumMap } = useStadiums();
+  const { historyMap } = useTeamHistory();
+  const { oddsMap } = useGlobalOdds(filteredMatchIds);
 
   // Agrupa palpites por match_id
   const allPredictionsByMatch = useMemo(() => {
