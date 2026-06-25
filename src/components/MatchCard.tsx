@@ -37,6 +37,7 @@ interface MatchCardProps {
 
 export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, onPredict, saving }: MatchCardProps) {
   const [editing, setEditing] = useState(false);
+  const [showPredictions, setShowPredictions] = useState(false);
   const matchDate = new Date(match.match_date);
   const now = new Date();
   const isPast = matchDate <= now;
@@ -208,8 +209,20 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
       {/* Palpites de todos os participantes */}
       {allPredictions && allPredictions.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-800/50">
-          <p className="text-xs text-gray-600 mb-1.5">Palpites registrados:</p>
-          <div className="space-y-1">
+          <button
+            onClick={() => setShowPredictions(!showPredictions)}
+            className="w-full flex items-center justify-between text-xs text-gray-500 hover:text-gray-300 transition"
+          >
+            <span>
+              Palpites registrados{' '}
+              <span className="text-gray-400">({allPredictions.length})</span>
+            </span>
+            <span className="transition-transform" style={{ transform: showPredictions ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              ▼
+            </span>
+          </button>
+          {showPredictions && (
+          <div className="space-y-1 mt-2">
             {[...allPredictions]
               .sort((a, b) => (a.profiles?.name || '').localeCompare(b.profiles?.name || ''))
               .map((p: { user_id: string; home_score: number; away_score: number; points: number | null; profiles: { name: string } | null }) => (
@@ -232,6 +245,7 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
     </div>
