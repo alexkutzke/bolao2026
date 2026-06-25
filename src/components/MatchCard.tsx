@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { computeOdds } from '../lib/odds';
 
 interface MatchCardProps {
   match: {
@@ -38,6 +39,7 @@ interface MatchCardProps {
 export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFlag, stadiumName, onPredict, saving }: MatchCardProps) {
   const [editing, setEditing] = useState(false);
   const [showPredictions, setShowPredictions] = useState(false);
+  const odds = useMemo(() => computeOdds(allPredictions || []), [allPredictions]);
   const matchDate = new Date(match.match_date);
   const now = new Date();
   const isPast = matchDate <= now;
@@ -248,6 +250,24 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
           )}
         </div>
       )}
+
+      {/* Odds (expectativa do bolão) */}
+      {odds && odds.total >= 2 && (
+        <div className="mt-3 pt-3 border-t border-gray-800/50">
+          <p className="text-xs text-gray-600 mb-2">Expectativa do bolão ({odds.total} palpites)</p>
+          <div className="space-y-1.5">
+            <Bar label="Casa" pct={odds.homeWinPct} color="bg-green-600" />
+            <Bar label="Empate" pct={odds.drawPct} color="bg-gray-500" />
+            <Bar label="Fora" pct={odds.awayWinPct} color="bg-blue-600" />
+          </div>
+          <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+            {odds.mostCommonScore && (
+              <span>Mais comum: <span className="text-gray-300">{odds.mostCommonScore}</span></span>
+            )}
+            <span>Média: {odds.avgHomeGoals} × {odds.avgAwayGoals}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -304,5 +324,20 @@ function PredictionInput({
         {saving ? '...' : '💾'}
       </button>
     </form>
+  );
+}
+
+function Bar({ label, pct, color }: { label: string; pct: number; color: string }) {
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <span className="w-10 text-gray-500">{label}</span>
+      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${color}`}
+          style={{ width: `${Math.max(pct, 2)}%` }}
+        />
+      </div>
+      <span className="w-8 text-right text-gray-400 tabular-nums">{pct}%</span>
+    </div>
   );
 }
