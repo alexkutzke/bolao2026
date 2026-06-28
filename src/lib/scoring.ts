@@ -5,6 +5,7 @@ export type PointsResult = {
 
 /**
  * Calcula pontos de um palpite baseado no resultado real.
+ * Pontuação difere por fase: grupos 10/7/4/2, mata-mata 8/6/4/2.
  * Apenas a maior pontuação é retornada (não acumula).
  */
 export function calculatePoints(
@@ -12,30 +13,34 @@ export function calculatePoints(
   predictionAway: number,
   actualHome: number,
   actualAway: number,
+  stage: 'group' | 'knockout' = 'knockout',
 ): PointsResult {
-  const predWinner = Math.sign(predictionHome - predictionAway); // 1, -1, 0
+  const predWinner = Math.sign(predictionHome - predictionAway);
   const actualWinner = Math.sign(actualHome - actualAway);
 
-  // 10 pts: Placar exato
+  const ptsExact = stage === 'group' ? 10 : 8;
+  const ptsDiff = stage === 'group' ? 7 : 6;
+
+  // Placar exato
   if (predictionHome === actualHome && predictionAway === actualAway) {
-    return { points: 10, detail: 'exact' };
+    return { points: ptsExact, detail: 'exact' };
   }
 
-  // 7 pts: Vencedor + saldo de gols (mesmo vencedor E mesma diferença)
+  // Vencedor + saldo de gols
   if (predWinner === actualWinner && predWinner !== 0) {
     const predDiff = predictionHome - predictionAway;
     const actualDiff = actualHome - actualAway;
     if (predDiff === actualDiff) {
-      return { points: 7, detail: 'winner_diff' };
+      return { points: ptsDiff, detail: 'winner_diff' };
     }
   }
 
-  // 4 pts: Vencedor correto (ou acerto de empate)
+  // Vencedor correto (ou empate)
   if (predWinner === actualWinner) {
     return { points: 4, detail: 'winner' };
   }
 
-  // 2 pts: Acertou o número de gols de um dos times
+  // Gols de um time
   if (predictionHome === actualHome || predictionAway === actualAway) {
     return { points: 2, detail: 'one_team_goals' };
   }

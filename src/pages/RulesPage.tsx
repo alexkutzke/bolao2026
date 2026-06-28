@@ -25,26 +25,27 @@ export function RulesPage() {
         <p className="text-sm text-gray-400">
           Apenas a <strong>maior pontuação</strong> é atribuída por jogo — as categorias não acumulam.
         </p>
+        <p className="text-sm text-gray-300">
+          <strong>Fase de grupos:</strong> 10/7/4/2 pts &nbsp;|&nbsp; <strong>Mata-mata:</strong> 8/6/4/2 pts
+        </p>
 
         <div className="space-y-3 mt-2">
           <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/20 border border-green-800/50">
-            <span className="text-xl font-bold text-green-400 shrink-0 w-8">10</span>
+            <span className="text-xl font-bold text-green-400 shrink-0 w-8">10/8</span>
             <div>
               <p className="font-medium text-green-300">Placar exato</p>
               <p className="text-sm text-gray-400">
-                Acertar o placar exato do jogo.<br />
-                <em>Ex: palpite 2×1, resultado real 2×1.</em>
+                Acertar o placar exato do jogo. (10 pts grupos, 8 pts mata-mata)
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/15 border border-green-800/30">
-            <span className="text-xl font-bold text-green-300 shrink-0 w-8">7</span>
+            <span className="text-xl font-bold text-green-300 shrink-0 w-8">7/6</span>
             <div>
               <p className="font-medium text-green-300">Vencedor + diferença de gols</p>
               <p className="text-sm text-gray-400">
-                Acertar quem ganhou <strong>e</strong> a diferença de gols (saldo).<br />
-                <em>Ex: palpite 3×1, resultado real 2×0 — diferença de 2 gols.</em>
+                Acertar quem ganhou <strong>e</strong> a diferença de gols (saldo). (7 pts grupos, 6 pts mata-mata)
               </p>
             </div>
           </div>

@@ -9,16 +9,20 @@ function calculatePoints(
   predAway: number,
   actualHome: number,
   actualAway: number,
+  stage: string,
 ): { points: number; detail: string | null } {
   const predWinner = Math.sign(predHome - predAway);
   const actualWinner = Math.sign(actualHome - actualAway);
 
+  const ptsExact = stage === 'group' ? 10 : 8;
+  const ptsDiff = stage === 'group' ? 7 : 6;
+
   if (predHome === actualHome && predAway === actualAway) {
-    return { points: 10, detail: 'exact' };
+    return { points: ptsExact, detail: 'exact' };
   }
   if (predWinner === actualWinner && predWinner !== 0) {
     if (predHome - predAway === actualHome - actualAway) {
-      return { points: 7, detail: 'winner_diff' };
+      return { points: ptsDiff, detail: 'winner_diff' };
     }
   }
   if (predWinner === actualWinner) {
@@ -95,7 +99,7 @@ Deno.serve(async (req) => {
     // Calculate scores for all boloes
     const { data: finishedMatches, error: matchError } = await supabase
       .from('matches')
-      .select('id, home_score, away_score')
+      .select('id, home_score, away_score, stage')
       .eq('finished', true)
       .not('home_score', 'is', null)
       .not('away_score', 'is', null);
@@ -125,6 +129,7 @@ Deno.serve(async (req) => {
           pred.away_score,
           match.home_score!,
           match.away_score!,
+          match.stage,
         );
 
         const { error } = await supabase

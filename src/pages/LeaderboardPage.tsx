@@ -75,19 +75,22 @@ export function LeaderboardPage() {
             </button>
             {rulesOpen && (
             <div className="px-5 pb-5">
+            <p className="text-xs text-gray-500 mb-3">
+              <strong>Grupos:</strong> 10/7/4/2 pts &nbsp;|&nbsp; <strong>Mata-mata:</strong> 8/6/4/2 pts
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/20 border border-green-800/50">
-                <span className="text-lg font-bold text-green-400 shrink-0">10</span>
+                <span className="text-lg font-bold text-green-400 shrink-0">10/8</span>
                 <div>
                   <p className="text-sm font-medium text-green-300">Placar exato</p>
-                  <p className="text-xs text-gray-400">Acertar o placar exato do jogo. Ex: palpite 2×1, resultado 2×1.</p>
+                  <p className="text-xs text-gray-400">Acertar o placar exato do jogo. (10 pts grupos, 8 pts mata-mata)</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/15 border border-green-800/30">
-                <span className="text-lg font-bold text-green-300 shrink-0">7</span>
+                <span className="text-lg font-bold text-green-300 shrink-0">7/6</span>
                 <div>
                   <p className="text-sm font-medium text-green-300">Vencedor + diferença de gols</p>
-                  <p className="text-xs text-gray-400">Acertar quem ganhou <strong>e</strong> a diferença de gols. Ex: palpite 3×1, resultado 2×0 (diferença de 2 gols).</p>
+                  <p className="text-xs text-gray-400">Acertar quem ganhou <strong>e</strong> a diferença de gols. (7 pts grupos, 6 pts mata-mata)</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/10 border border-green-800/20">
