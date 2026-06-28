@@ -44,10 +44,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [user, activeBolao?.id]);
 
   useEffect(() => {
+    // Handle magic link / password recovery: Supabase auto-detects token on getSession()
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+        // Clean up hash so HashRouter works normally
+        if (window.location.hash.includes('access_token=')) {
+          window.location.hash = '/';
+        }
       } else {
         setLoading(false);
       }
