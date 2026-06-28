@@ -26,15 +26,20 @@ Deno.serve(async (req) => {
   const headers = { 'Content-Type': 'application/json' };
 
   try {
-    // Get today's matches (Brasília time window)
+    // Get today's matches (Brasília time, games before 6 AM belong to yesterday)
     const now = new Date();
-    const brasiliaStart = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-    brasiliaStart.setHours(0, 0, 0, 0);
-    const startUtc = new Date(brasiliaStart.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const brasiliaNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
 
-    const brasiliaEnd = new Date(now.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-    brasiliaEnd.setHours(23, 59, 59, 999);
-    const endUtc = new Date(brasiliaEnd.toLocaleString('en-US', { timeZone: 'UTC' }));
+    // Start of today's window: 6 AM Brasília
+    const todayStart = new Date(brasiliaNow);
+    todayStart.setHours(6, 0, 0, 0);
+    const startUtc = new Date(todayStart.toLocaleString('en-US', { timeZone: 'UTC' }));
+
+    // End of today's window: 5:59 AM tomorrow Brasília
+    const todayEnd = new Date(brasiliaNow);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+    todayEnd.setHours(5, 59, 59, 999);
+    const endUtc = new Date(todayEnd.toLocaleString('en-US', { timeZone: 'UTC' }));
 
     const { data: matches, error } = await supabase
       .from('matches')
@@ -51,7 +56,7 @@ Deno.serve(async (req) => {
     }
 
     // Build message
-    const dateStr = brasiliaStart.toLocaleDateString('pt-BR', {
+    const dateStr = todayStart.toLocaleDateString('pt-BR', {
       weekday: 'long',
       day: '2-digit',
       month: '2-digit',
