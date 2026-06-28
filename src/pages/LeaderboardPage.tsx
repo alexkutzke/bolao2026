@@ -18,7 +18,7 @@ function ChangeIcon({ change }: { change: LeaderboardEntry['change'] }) {
 }
 
 export function LeaderboardPage() {
-  const [stage, setStage] = useState<CompetitionSlug>('group');
+  const [stage, setStage] = useState<CompetitionSlug>('knockout');
   const [rulesOpen, setRulesOpen] = useState(false);
   const { activeBolao, user } = useApp();
   const { entries, loading } = useLeaderboard(stage, activeBolao?.id);
