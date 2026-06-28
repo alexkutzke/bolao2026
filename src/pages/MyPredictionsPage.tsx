@@ -5,7 +5,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import type { CompetitionSlug } from '../types';
 
 export function MyPredictionsPage() {
-  const [stage, setStage] = useState<CompetitionSlug>('group');
+  const [stage, setStage] = useState<CompetitionSlug>('knockout');
   const { predictions, loading: predLoading, savePrediction } = usePredictions();
   const { matches, loading: matchLoading } = useMatches(stage);
   const { allFinished: groupStageDone } = useGroupStageComplete();
