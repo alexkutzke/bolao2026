@@ -113,6 +113,16 @@ Deno.serve(async (req) => {
 
     const { games } = await res.json() as { games: ApiGame[] };
     console.log(`Fetched ${games.length} games from API`);
+
+    // Build team name lookup for knockout name resolution
+    const teamNames = new Map<string, string>();
+    const { data: teamsData } = await supabase.from('teams').select('id, name_en');
+    if (teamsData) {
+      for (const t of teamsData) {
+        teamNames.set(t.id, t.name_en);
+      }
+    }
+
     const now = new Date().toISOString();
     let synced = 0;
     let updated = 0;
@@ -124,8 +134,8 @@ Deno.serve(async (req) => {
         api_id: parseInt(game.id),
         home_team_id: game.home_team_id,
         away_team_id: game.away_team_id,
-        home_team_name: game.home_team_name_en,
-        away_team_name: game.away_team_name_en,
+        home_team_name: game.home_team_name_en || teamNames.get(game.home_team_id) || '',
+        away_team_name: game.away_team_name_en || teamNames.get(game.away_team_id) || '',
         home_score: game.home_score && game.home_score !== 'null' ? parseInt(game.home_score) : null,
         away_score: game.away_score && game.away_score !== 'null' ? parseInt(game.away_score) : null,
         group_name: game.group,
@@ -134,8 +144,8 @@ Deno.serve(async (req) => {
         stadium: game.stadium_id,
         stage: mapStage(game.type),
         finished: game.finished === 'TRUE',
-        home_team_label: game.home_team_label || null,
-        away_team_label: game.away_team_label || null,
+        home_team_label: (game.home_team_id !== '0' ? null : game.home_team_label) || null,
+        away_team_label: (game.away_team_id !== '0' ? null : game.away_team_label) || null,
         updated_at: now,
       };
 

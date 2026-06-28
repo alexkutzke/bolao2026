@@ -12,7 +12,7 @@ import { useApp } from '../contexts/AuthContext';
 import type { CompetitionSlug, Prediction, Match } from '../types';
 
 export function HomePage() {
-  const [stage, setStage] = useState<CompetitionSlug>('group');
+  const [stage, setStage] = useState<CompetitionSlug>('knockout');
   const [groupFilter, setGroupFilter] = useState<string>('all');
   const [matchdayFilter, setMatchdayFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'finished'>('all');
