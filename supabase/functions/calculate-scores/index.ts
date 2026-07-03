@@ -65,16 +65,22 @@ async function saveRankingsSnapshot(bolaoId: string) {
       totals.set(row.user_id, (totals.get(row.user_id) || 0) + row.points);
     }
     const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1]);
-    for (let i = 0; i < sorted.length; i++) {
-      const [userId, pts] = sorted[i];
-      await supabase.from('rankings_snapshot').upsert({
-        bolao_id: bolaoId,
-        stage,
-        user_id: userId,
-        position: i + 1,
-        total_points: pts,
-        updated_at: new Date().toISOString(),
-      });
+
+    // Batch upsert
+    const rows = sorted.map(([userId, pts], i) => ({
+      bolao_id: bolaoId,
+      stage,
+      user_id: userId,
+      position: i + 1,
+      total_points: pts,
+      updated_at: new Date().toISOString(),
+    }));
+
+    if (rows.length > 0) {
+      const { error } = await supabase
+        .from('rankings_snapshot')
+        .upsert(rows);
+      if (error) console.error(`Snapshot error for ${bolaoId}/${stage}:`, error);
     }
   }
 }
@@ -131,14 +137,16 @@ Deno.serve(async (req) => {
     for (const match of finishedMatches) {
       const { data: preds, error: predError } = await supabase
         .from('predictions')
-        .select('id, bolao_id, home_score, away_score, points')
+        .select('id, home_score, away_score, points')
         .eq('match_id', match.id);
 
-      if (predError) continue;
+      if (predError || !preds) continue;
 
-      const toScore = force ? preds : (preds?.filter((p) => p.points === null) || []);
+      const toScore = force ? preds : preds.filter((p) => p.points === null);
+      if (toScore.length === 0) continue;
 
-      for (const pred of toScore) {
+      // Calculate all scores for this match, then batch update
+      const updates = toScore.map((pred) => {
         const result = calculatePoints(
           pred.home_score,
           pred.away_score,
@@ -147,14 +155,14 @@ Deno.serve(async (req) => {
           match.stage,
           match.matchday,
         );
+        return { id: pred.id, points: result.points, points_detail: result.detail };
+      });
 
-        const { error } = await supabase
-          .from('predictions')
-          .update({ points: result.points, points_detail: result.detail })
-          .eq('id', pred.id);
+      const { error } = await supabase
+        .from('predictions')
+        .upsert(updates, { onConflict: 'id' });
 
-        if (!error) calculated++;
-      }
+      if (!error) calculated += updates.length;
     }
 
     return new Response(
