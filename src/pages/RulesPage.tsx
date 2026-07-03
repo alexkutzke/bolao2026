@@ -31,21 +31,21 @@ export function RulesPage() {
 
         <div className="space-y-3 mt-2">
           <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/20 border border-green-800/50">
-            <span className="text-xl font-bold text-green-400 shrink-0 w-8">10/8</span>
+            <span className="text-xl font-bold text-green-400 shrink-0 w-8">10/8+</span>
             <div>
               <p className="font-medium text-green-300">Placar exato</p>
               <p className="text-sm text-gray-400">
-                Acertar o placar exato do jogo. (10 pts grupos, 8 pts mata-mata)
+                Acertar o placar exato do jogo. (10 pts grupos, 8 pts mata-mata × multiplicador)
               </p>
             </div>
           </div>
 
           <div className="flex items-start gap-3 p-3 rounded-lg bg-green-900/15 border border-green-800/30">
-            <span className="text-xl font-bold text-green-300 shrink-0 w-8">7/6</span>
+            <span className="text-xl font-bold text-green-300 shrink-0 w-8">7/6+</span>
             <div>
               <p className="font-medium text-green-300">Vencedor + diferença de gols</p>
               <p className="text-sm text-gray-400">
-                Acertar quem ganhou <strong>e</strong> a diferença de gols (saldo). (7 pts grupos, 6 pts mata-mata)
+                Acertar quem ganhou <strong>e</strong> a diferença de gols (saldo). (7 pts grupos, 6 pts mata-mata × multiplicador)
               </p>
             </div>
           </div>
@@ -72,6 +72,9 @@ export function RulesPage() {
             </div>
           </div>
         </div>
+        <p className="text-xs text-gray-400 mt-3">
+          <strong>Multiplicador no mata-mata:</strong> R32 ×1, Oitavas ×1.5, Quartas ×2, Semi ×2.5, 3º lugar ×2.5, Final ×3
+        </p>
       </section>
 
       {/* Regras de palpites */}

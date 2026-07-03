@@ -4,32 +4,47 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+function getMultiplier(stage: string, matchday: number): number {
+  if (stage === 'group') return 1;
+  switch (matchday) {
+    case 4: return 1;
+    case 5: return 1.5;
+    case 6: return 2;
+    case 7: return 2.5;
+    case 8: return 2.5;
+    case 9: return 3;
+    default: return 1;
+  }
+}
+
 function calculatePoints(
   predHome: number,
   predAway: number,
   actualHome: number,
   actualAway: number,
   stage: string,
+  matchday: number,
 ): { points: number; detail: string | null } {
   const predWinner = Math.sign(predHome - predAway);
   const actualWinner = Math.sign(actualHome - actualAway);
 
-  const ptsExact = stage === 'group' ? 10 : 8;
-  const ptsDiff = stage === 'group' ? 7 : 6;
+  const baseExact = stage === 'group' ? 10 : 8;
+  const baseDiff = stage === 'group' ? 7 : 6;
+  const mult = getMultiplier(stage, matchday);
 
   if (predHome === actualHome && predAway === actualAway) {
-    return { points: ptsExact, detail: 'exact' };
+    return { points: Math.round(baseExact * mult), detail: 'exact' };
   }
   if (predWinner === actualWinner && predWinner !== 0) {
     if (predHome - predAway === actualHome - actualAway) {
-      return { points: ptsDiff, detail: 'winner_diff' };
+      return { points: Math.round(baseDiff * mult), detail: 'winner_diff' };
     }
   }
   if (predWinner === actualWinner) {
-    return { points: 4, detail: 'winner' };
+    return { points: Math.round(4 * mult), detail: 'winner' };
   }
   if (predHome === actualHome || predAway === actualAway) {
-    return { points: 2, detail: 'one_team_goals' };
+    return { points: Math.round(2 * mult), detail: 'one_team_goals' };
   }
   return { points: 0, detail: null };
 }
@@ -99,7 +114,7 @@ Deno.serve(async (req) => {
     // Calculate scores for all boloes
     const { data: finishedMatches, error: matchError } = await supabase
       .from('matches')
-      .select('id, home_score, away_score, stage')
+      .select('id, home_score, away_score, stage, matchday')
       .eq('finished', true)
       .not('home_score', 'is', null)
       .not('away_score', 'is', null);
@@ -130,6 +145,7 @@ Deno.serve(async (req) => {
           match.home_score!,
           match.away_score!,
           match.stage,
+          match.matchday,
         );
 
         const { error } = await supabase

@@ -108,7 +108,10 @@ export function LeaderboardPage() {
                 </div>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-3">
+            <p className="text-xs text-gray-400 mt-3">
+              <strong>Multiplicador no mata-mata:</strong> R32 ×1, Oitavas ×1.5, Quartas ×2, Semi ×2.5, 3º lugar ×2.5, Final ×3
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
               ⚠️ Apenas a <strong>maior pontuação</strong> é atribuída por jogo — as categorias não acumulam.
             </p>
             </div>
