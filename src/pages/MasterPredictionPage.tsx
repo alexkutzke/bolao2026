@@ -16,8 +16,8 @@ export function MasterPredictionPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [homeTeam, setHomeTeam] = useState(prediction?.home_team_id || '');
   const [awayTeam, setAwayTeam] = useState(prediction?.away_team_id || '');
-  const [homeScore, setHomeScore] = useState(prediction?.home_score ?? 0);
-  const [awayScore, setAwayScore] = useState(prediction?.away_score ?? 0);
+  const [homeScore, setHomeScore] = useState(prediction?.home_score?.toString() ?? '');
+  const [awayScore, setAwayScore] = useState(prediction?.away_score?.toString() ?? '');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [finalStarted, setFinalStarted] = useState(false);
@@ -54,8 +54,8 @@ export function MasterPredictionPage() {
     if (prediction) {
       setHomeTeam(prediction.home_team_id);
       setAwayTeam(prediction.away_team_id);
-      setHomeScore(prediction.home_score);
-      setAwayScore(prediction.away_score);
+      setHomeScore(prediction.home_score?.toString() ?? '');
+      setAwayScore(prediction.away_score?.toString() ?? '');
     }
   }, [prediction]);
 
@@ -67,9 +67,11 @@ export function MasterPredictionPage() {
       setMsg('Selecione dois times diferentes.');
       return;
     }
+    const h = parseInt(homeScore) || 0;
+    const a = parseInt(awayScore) || 0;
     setSaving(true);
     setMsg('');
-    const { error } = await savePrediction({ home_team_id: homeTeam, away_team_id: awayTeam, home_score: homeScore, away_score: awayScore });
+    const { error } = await savePrediction({ home_team_id: homeTeam, away_team_id: awayTeam, home_score: h, away_score: a });
     if (error) setMsg(`Erro: ${typeof error === 'string' ? error : error.message}`);
     else setMsg('✅ Palpite master salvo!');
     setSaving(false);
@@ -89,7 +91,7 @@ export function MasterPredictionPage() {
           Quem estará na <strong>grande final</strong> da Copa 2026? Qual será o placar?
         </p>
         <p className="text-xs text-gray-500 mb-4">
-          🏆 25 pts pelos finalistas corretos + 30 pts pelo placar exato da final (máx 55 pts).<br />
+          🏆 25 pts pelos finalistas corretos (ordem não importa) + 30 pts pelo placar exato (máx 55 pts).<br />
           🔒 Seu palpite é <strong>secreto</strong> — só você e o admin podem vê-lo até o dia da final.
         </p>
 
@@ -127,7 +129,7 @@ export function MasterPredictionPage() {
               )}
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Time vice</label>
+              <label className="block text-xs text-gray-400 mb-1">Time vice-campeão</label>
               <select
                 value={awayTeam}
                 onChange={(e) => setAwayTeam(e.target.value)}
@@ -150,13 +152,13 @@ export function MasterPredictionPage() {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Placar da final</label>
+            <label className="block text-xs text-gray-400 mb-1">Placar da final (campeão × vice)</label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 min="0" max="99"
                 value={homeScore}
-                onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)}
+                onChange={(e) => setHomeScore(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
                 disabled={isLocked}
                 required
                 className="w-16 px-2 py-2 text-center bg-gray-800 border border-gray-700 rounded-lg text-white text-sm disabled:opacity-50 focus:outline-none focus:border-green-500"
@@ -166,7 +168,7 @@ export function MasterPredictionPage() {
                 type="number"
                 min="0" max="99"
                 value={awayScore}
-                onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)}
+                onChange={(e) => setAwayScore(e.target.value.replace(/[^0-9]/g, '').slice(0, 2))}
                 disabled={isLocked}
                 required
                 className="w-16 px-2 py-2 text-center bg-gray-800 border border-gray-700 rounded-lg text-white text-sm disabled:opacity-50 focus:outline-none focus:border-green-500"
