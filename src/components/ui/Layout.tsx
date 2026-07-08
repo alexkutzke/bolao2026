@@ -14,6 +14,7 @@ export function Layout() {
     { to: '/leaderboard', label: 'Pontuação' },
     { to: '/rules', label: 'Regras' },
     { to: '/master', label: '🔮 Final' },
+    { to: '/turbo', label: '⚡ Turbo' },
   ];
 
   if (profile?.is_admin) {

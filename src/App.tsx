@@ -10,6 +10,7 @@ import { AdminPage } from './pages/AdminPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RulesPage } from './pages/RulesPage';
 import { MasterPredictionPage } from './pages/MasterPredictionPage';
+import { TurboLeaderboardPage } from './pages/TurboLeaderboardPage';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/rules" element={<RulesPage />} />
             <Route path="/master" element={<MasterPredictionPage />} />
+            <Route path="/turbo" element={<TurboLeaderboardPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -104,3 +104,10 @@ export interface MasterPrediction {
   created_at: string;
   updated_at: string;
 }
+
+export interface TurboLeaderboardEntry {
+  user_id: string;
+  name: string;
+  total_points: number;
+  turbo_multiplier: number;
+}

@@ -130,6 +130,20 @@ function SyncTab() {
     setLoading(false);
   }
 
+  async function calcTurbo() {
+    setLoading(true);
+    setStatus('Calculando pontuação turbo jogo a jogo...');
+    try {
+      const { data, error } = await supabase.functions.invoke('calculate-turbo');
+      if (error) setStatus(`❌ Erro na Edge Function: ${error.message}`);
+      else setStatus(`✅ Turbo calculado! ${data.scored} palpites pontuados em ${data.matches} jogos (${data.boloes} bolões).`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      setStatus(`❌ Erro: ${message}`);
+    }
+    setLoading(false);
+  }
+
   async function calculateAllScores(e?: React.MouseEvent) {
     const force = e?.shiftKey ?? false;
     setLoading(true);
@@ -194,6 +208,13 @@ function SyncTab() {
           className="px-5 py-2.5 bg-yellow-700 hover:bg-yellow-600 disabled:opacity-50 text-white font-medium rounded-lg transition"
         >
           {loading ? 'Sincronizando...' : '⚡ Resultados'}
+        </button>
+        <button
+          onClick={calcTurbo}
+          disabled={loading}
+          className="px-5 py-2.5 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white font-medium rounded-lg transition"
+        >
+          {loading ? 'Calculando...' : '⚡ Turbo'}
         </button>
       </div>
 
