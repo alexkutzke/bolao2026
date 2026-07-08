@@ -9,6 +9,7 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RulesPage } from './pages/RulesPage';
+import { MasterPredictionPage } from './pages/MasterPredictionPage';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/rules" element={<RulesPage />} />
+            <Route path="/master" element={<MasterPredictionPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

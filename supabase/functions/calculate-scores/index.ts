@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     // Calculate scores for all boloes
     const { data: finishedMatches, error: matchError } = await supabase
       .from('matches')
-      .select('id, home_score, away_score, stage, matchday')
+      .select('id, home_score, away_score, stage, matchday, group_name, home_team_id, away_team_id')
       .eq('finished', true)
       .not('home_score', 'is', null)
       .not('away_score', 'is', null);
@@ -145,24 +145,40 @@ Deno.serve(async (req) => {
       const toScore = force ? preds : preds.filter((p) => p.points === null);
       if (toScore.length === 0) continue;
 
-      // Calculate all scores for this match, then batch update
-      const updates = toScore.map((pred) => {
-        const result = calculatePoints(
-          pred.home_score,
-          pred.away_score,
-          match.home_score!,
-          match.away_score!,
-          match.stage,
-          match.matchday,
-        );
-        return { id: pred.id, points: result.points, points_detail: result.detail };
+      // Calculate scores and batch update via RPC (single DB call per match)
+      const ids = toScore.map((p) => p.id);
+      const { error } = await supabase.rpc('calculate_match_scores', {
+        match_id: match.id,
+        match_stage: match.stage,
+        match_matchday: match.matchday,
+        force_recalc: force,
       });
 
-      const { error } = await supabase
-        .from('predictions')
-        .upsert(updates, { onConflict: 'id' });
+      if (!error) calculated += toScore.length;
+      else console.error(`Score error for match ${match.id}:`, error);
+    }
 
-      if (!error) calculated += updates.length;
+    // Score master predictions if the final is finished
+    const finalMatch = finishedMatches?.find((m) => m.group_name === 'FINAL');
+    if (finalMatch && finalMatch.home_score !== null) {
+      let masterScored = 0;
+      const { data: masters } = await supabase
+        .from('master_predictions')
+        .select('*');
+
+      if (masters && masters.length > 0) {
+        const toScore = force ? masters : masters.filter((m) => m.points === null);
+        for (const mp of toScore) {
+          let pts = 0;
+          const homeOk = mp.home_team_id === finalMatch.home_team_id || mp.home_team_id === finalMatch.away_team_id;
+          const awayOk = mp.away_team_id === finalMatch.home_team_id || mp.away_team_id === finalMatch.away_team_id;
+          if (homeOk && awayOk) pts += 25;
+          if (mp.home_score === finalMatch.home_score && mp.away_score === finalMatch.away_score) pts += 30;
+          await supabase.from('master_predictions').update({ points: pts }).eq('id', mp.id);
+          masterScored++;
+        }
+      }
+      console.log(`Master predictions scored: ${masterScored}`);
     }
 
     return new Response(

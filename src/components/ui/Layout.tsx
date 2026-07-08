@@ -13,6 +13,7 @@ export function Layout() {
     { to: '/predictions', label: 'Meus Palpites' },
     { to: '/leaderboard', label: 'Pontuação' },
     { to: '/rules', label: 'Regras' },
+    { to: '/master', label: '🔮 Final' },
   ];
 
   if (profile?.is_admin) {

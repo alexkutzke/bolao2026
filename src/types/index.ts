@@ -91,3 +91,16 @@ export interface Bolao {
   created_by: string;
   created_at: string;
 }
+
+export interface MasterPrediction {
+  id: number;
+  user_id: string;
+  bolao_id: string;
+  home_team_id: string;
+  away_team_id: string;
+  home_score: number;
+  away_score: number;
+  points: number | null;
+  created_at: string;
+  updated_at: string;
+}
