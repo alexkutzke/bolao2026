@@ -11,7 +11,7 @@ interface Team {
 }
 
 export function MasterPredictionPage() {
-  const { activeBolao, user } = useApp();
+  const { activeBolao } = useApp();
   const { prediction, count, loading, savePrediction } = useMasterPrediction();
   const [teams, setTeams] = useState<Team[]>([]);
   const [homeTeam, setHomeTeam] = useState(prediction?.home_team_id || '');
@@ -58,7 +58,7 @@ export function MasterPredictionPage() {
     setSaving(true);
     setMsg('');
     const { error } = await savePrediction({ home_team_id: homeTeam, away_team_id: awayTeam, home_score: homeScore, away_score: awayScore });
-    if (error) setMsg(`Erro: ${error.message}`);
+    if (error) setMsg(`Erro: ${typeof error === 'string' ? error : error.message}`);
     else setMsg('✅ Palpite master salvo!');
     setSaving(false);
   }
