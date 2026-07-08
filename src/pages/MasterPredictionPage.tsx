@@ -24,8 +24,20 @@ export function MasterPredictionPage() {
   const [memberCount, setMemberCount] = useState<number>(0);
 
   useEffect(() => {
-    supabase.from('teams').select('id, name_en, flag_url').order('name_en').then(({ data }) => {
-      if (data) setTeams(data);
+    // Load teams and filter to those still in knockout (real team IDs)
+    supabase.from('matches').select('home_team_id, away_team_id').eq('stage', 'knockout').then(({ data: koMatches }) => {
+      if (koMatches) {
+        const koTeamIds = new Set<string>();
+        koMatches.forEach((m) => {
+          if (m.home_team_id && m.home_team_id !== '0') koTeamIds.add(m.home_team_id);
+          if (m.away_team_id && m.away_team_id !== '0') koTeamIds.add(m.away_team_id);
+        });
+        supabase.from('teams').select('id, name_en, flag_url').order('name_en').then(({ data: allTeams }) => {
+          if (allTeams) {
+            setTeams(allTeams.filter((t) => koTeamIds.has(t.id)));
+          }
+        });
+      }
     });
     supabase.from('matches').select('match_date').eq('group_name', 'FINAL').single().then(({ data }) => {
       if (data) setFinalStarted(new Date(data.match_date) < new Date());
@@ -108,7 +120,10 @@ export function MasterPredictionPage() {
                 ))}
               </select>
               {homeTeamObj && (
-                <p className="text-xs text-gray-500 mt-1">🇧🇷 {homeTeamObj.name_en}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <img src={homeTeamObj.flag_url} alt="" className="w-5 h-3 rounded" />
+                  <span className="text-xs text-gray-400">{homeTeamObj.name_en}</span>
+                </div>
               )}
             </div>
             <div>
@@ -126,7 +141,10 @@ export function MasterPredictionPage() {
                 ))}
               </select>
               {awayTeamObj && (
-                <p className="text-xs text-gray-500 mt-1">🇧🇷 {awayTeamObj.name_en}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <img src={awayTeamObj.flag_url} alt="" className="w-5 h-3 rounded" />
+                  <span className="text-xs text-gray-400">{awayTeamObj.name_en}</span>
+                </div>
               )}
             </div>
           </div>
