@@ -20,8 +20,11 @@ export function MasterPredictionPage() {
   const [awayScore, setAwayScore] = useState(prediction?.away_score?.toString() ?? '');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
-  const [finalStarted, setFinalStarted] = useState(false);
   const [memberCount, setMemberCount] = useState<number>(0);
+
+  // Master prediction deadline: July 8, 2026, 23:59 BRT = July 9, 2026, 02:59 UTC
+  const deadline = new Date('2026-07-09T02:59:59Z');
+  const isLocked = new Date() > deadline;
 
   useEffect(() => {
     // Load teams and filter to those still in knockout (real team IDs)
@@ -39,9 +42,6 @@ export function MasterPredictionPage() {
         });
       }
     });
-    supabase.from('matches').select('match_date').eq('group_name', 'FINAL').single().then(({ data }) => {
-      if (data) setFinalStarted(new Date(data.match_date) < new Date());
-    });
     // Count bolão members
     if (activeBolao) {
       supabase.from('bolao_members').select('*', { count: 'exact', head: true }).eq('bolao_id', activeBolao.id).then(({ count }) => {
@@ -58,8 +58,6 @@ export function MasterPredictionPage() {
       setAwayScore(prediction.away_score?.toString() ?? '');
     }
   }, [prediction]);
-
-  const isLocked = finalStarted;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
