@@ -99,7 +99,7 @@ export function MasterPredictionPage() {
 
         {isLocked && (
           <div className="mb-4 p-3 bg-red-900/20 border border-red-700/50 rounded-lg text-sm text-red-300">
-            🔒 A final já começou. O palpite master está travado.
+            🔒 O prazo para o palpite master encerrou. Seu palpite está travado e será revelado no dia da final.
           </div>
         )}
 
