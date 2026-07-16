@@ -243,7 +243,7 @@ function ManualResultsTab() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
-  const [filter, setFilter] = useState<'past' | 'all'>('past');
+  const [filter, setFilter] = useState<'past' | 'upcoming' | 'all'>('upcoming');
 
   const loadMatches = useCallback(async () => {
     setLoading(true);
@@ -251,6 +251,8 @@ function ManualResultsTab() {
 
     if (filter === 'past') {
       query = query.lte('match_date', new Date().toISOString());
+    } else if (filter === 'upcoming') {
+      query = query.gte('match_date', new Date().toISOString()).order('match_date', { ascending: true });
     }
 
     const { data } = await query;
@@ -329,7 +331,15 @@ function ManualResultsTab() {
             filter === 'past' ? 'bg-green-700 text-white' : 'bg-gray-800 text-gray-400'
           }`}
         >
-          Jogos passados
+          Passados
+        </button>
+        <button
+          onClick={() => setFilter('upcoming')}
+          className={`px-3 py-1.5 rounded-lg text-sm transition ${
+            filter === 'upcoming' ? 'bg-green-700 text-white' : 'bg-gray-800 text-gray-400'
+          }`}
+        >
+          Futuros
         </button>
         <button
           onClick={() => setFilter('all')}
