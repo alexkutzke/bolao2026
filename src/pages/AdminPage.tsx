@@ -287,6 +287,22 @@ function ManualResultsTab() {
     setSavingId(null);
   }
 
+  async function saveTeamNames(match: Match, homeName: string, awayName: string) {
+    setSavingId(match.id);
+    const { error } = await supabase
+      .from('matches')
+      .update({ home_team_name: homeName, away_team_name: awayName, manually_set: true, updated_at: new Date().toISOString() })
+      .eq('id', match.id);
+    if (!error) {
+      setMatches((prev) =>
+        prev.map((m) =>
+          m.id === match.id ? { ...m, home_team_name: homeName, away_team_name: awayName, manually_set: true } : m,
+        ),
+      );
+    }
+    setSavingId(null);
+  }
+
   async function markNotFinished(match: Match) {
     setSavingId(match.id);
     await supabase
@@ -340,6 +356,7 @@ function ManualResultsTab() {
             key={match.id}
             match={match}
             onSave={saveResult}
+            onSaveNames={saveTeamNames}
             onMarkNotFinished={markNotFinished}
             saving={savingId === match.id}
             stageLabel={stageLabel(match)}
@@ -353,12 +370,14 @@ function ManualResultsTab() {
 function ManualMatchRow({
   match,
   onSave,
+  onSaveNames,
   onMarkNotFinished,
   saving,
   stageLabel,
 }: {
   match: Match;
   onSave: (m: Match, h: number, a: number) => void;
+  onSaveNames: (m: Match, home: string, away: string) => void;
   onMarkNotFinished: (m: Match) => void;
   saving: boolean;
   stageLabel: string;
@@ -375,6 +394,16 @@ function ManualMatchRow({
     }
   }
 
+  function handleNameSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const home = (form.elements.namedItem('homename') as HTMLInputElement).value;
+    const away = (form.elements.namedItem('awayname') as HTMLInputElement).value;
+    if (home.trim() && away.trim()) {
+      onSaveNames(match, home.trim(), away.trim());
+    }
+  }
+
   return (
     <div
       className={`rounded-lg border p-3 flex items-center gap-3 flex-wrap ${
@@ -387,9 +416,24 @@ function ManualMatchRow({
     >
       <span className="text-xs text-gray-500 w-24 shrink-0">{stageLabel}</span>
 
-      <span className="text-sm font-medium w-28 truncate">
-        {match.home_team_label || match.home_team_name}
-      </span>
+      {match.home_team_id === '0' ? (
+        <form onSubmit={handleNameSubmit} className="flex items-center gap-1">
+          <input name="homename" type="text" defaultValue={match.home_team_name || ''} placeholder="Time casa" className="w-24 px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-white text-xs" />
+          <span className="text-gray-600 text-xs">×</span>
+          <input name="awayname" type="text" defaultValue={match.away_team_name || ''} placeholder="Time fora" className="w-24 px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-white text-xs" />
+          <button type="submit" disabled={saving} className="px-2 py-0.5 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white text-xs rounded">Nome</button>
+        </form>
+      ) : (
+        <>
+          <span className="text-sm font-medium w-28 truncate">
+            {match.home_team_name || match.home_team_label}
+          </span>
+          <span className="text-gray-600 text-xs">vs</span>
+          <span className="text-sm font-medium w-28 truncate">
+            {match.away_team_name || match.away_team_label}
+          </span>
+        </>
+      )}
 
       <form onSubmit={handleSubmit} className="flex items-center gap-1">
         <input
@@ -419,10 +463,6 @@ function ManualMatchRow({
           {saving ? '...' : 'Salvar'}
         </button>
       </form>
-
-      <span className="text-sm font-medium w-28 truncate text-right">
-        {match.away_team_label || match.away_team_name}
-      </span>
 
       <span className="text-xs text-gray-600">
         {matchDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' })}
