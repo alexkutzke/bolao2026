@@ -244,6 +244,7 @@ function ManualResultsTab() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [filter, setFilter] = useState<'past' | 'upcoming' | 'all'>('upcoming');
+  const [allTeams, setAllTeams] = useState<{ id: string; name_en: string }[]>([]);
 
   const loadMatches = useCallback(async () => {
     setLoading(true);
@@ -263,6 +264,12 @@ function ManualResultsTab() {
   useEffect(() => {
     loadMatches();
   }, [loadMatches]);
+
+  useEffect(() => {
+    supabase.from('teams').select('id, name_en').order('name_en').then(({ data }) => {
+      if (data) setAllTeams(data);
+    });
+  }, []);
 
   async function saveResult(match: Match, homeScore: number, awayScore: number) {
     setSavingId(match.id);
@@ -289,16 +296,23 @@ function ManualResultsTab() {
     setSavingId(null);
   }
 
-  async function saveTeamNames(match: Match, homeName: string, awayName: string) {
+  async function saveTeamNames(match: Match, homeId: string, homeName: string, awayId: string, awayName: string) {
     setSavingId(match.id);
     const { error } = await supabase
       .from('matches')
-      .update({ home_team_name: homeName, away_team_name: awayName, manually_set: true, updated_at: new Date().toISOString() })
+      .update({
+        home_team_id: homeId,
+        home_team_name: homeName,
+        away_team_id: awayId,
+        away_team_name: awayName,
+        manually_set: true,
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', match.id);
     if (!error) {
       setMatches((prev) =>
         prev.map((m) =>
-          m.id === match.id ? { ...m, home_team_name: homeName, away_team_name: awayName, manually_set: true } : m,
+          m.id === match.id ? { ...m, home_team_id: homeId, home_team_name: homeName, away_team_id: awayId, away_team_name: awayName, manually_set: true } : m,
         ),
       );
     }
@@ -367,6 +381,7 @@ function ManualResultsTab() {
             match={match}
             onSave={saveResult}
             onSaveNames={saveTeamNames}
+            allTeams={allTeams}
             onMarkNotFinished={markNotFinished}
             saving={savingId === match.id}
             stageLabel={stageLabel(match)}
@@ -384,13 +399,15 @@ function ManualMatchRow({
   onMarkNotFinished,
   saving,
   stageLabel,
+  allTeams,
 }: {
   match: Match;
   onSave: (m: Match, h: number, a: number) => void;
-  onSaveNames: (m: Match, home: string, away: string) => void;
+  onSaveNames: (m: Match, homeId: string, homeName: string, awayId: string, awayName: string) => void;
   onMarkNotFinished: (m: Match) => void;
   saving: boolean;
   stageLabel: string;
+  allTeams: { id: string; name_en: string }[];
 }) {
   const matchDate = new Date(match.match_date);
 
@@ -407,10 +424,14 @@ function ManualMatchRow({
   function handleNameSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const home = (form.elements.namedItem('homename') as HTMLInputElement).value;
-    const away = (form.elements.namedItem('awayname') as HTMLInputElement).value;
-    if (home.trim() && away.trim()) {
-      onSaveNames(match, home.trim(), away.trim());
+    const homeId = (form.elements.namedItem('homename') as HTMLSelectElement).value;
+    const awayId = (form.elements.namedItem('awayname') as HTMLSelectElement).value;
+    if (homeId && awayId && homeId !== awayId) {
+      const homeTeam = allTeams.find((t) => t.id === homeId);
+      const awayTeam = allTeams.find((t) => t.id === awayId);
+      if (homeTeam && awayTeam) {
+        onSaveNames(match, homeId, homeTeam.name_en, awayId, awayTeam.name_en);
+      }
     }
   }
 
@@ -428,9 +449,19 @@ function ManualMatchRow({
 
       {match.home_team_id === '0' ? (
         <form onSubmit={handleNameSubmit} className="flex items-center gap-1">
-          <input name="homename" type="text" defaultValue={match.home_team_name || ''} placeholder="Time casa" className="w-24 px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-white text-xs" />
+          <select name="homename" defaultValue={match.home_team_id !== '0' ? match.home_team_id : ''} className="w-28 px-1 py-0.5 bg-gray-800 border border-gray-700 rounded text-white text-xs">
+            <option value="">Time casa...</option>
+            {allTeams.map((t) => (
+              <option key={t.id} value={t.id}>{t.name_en}</option>
+            ))}
+          </select>
           <span className="text-gray-600 text-xs">×</span>
-          <input name="awayname" type="text" defaultValue={match.away_team_name || ''} placeholder="Time fora" className="w-24 px-1.5 py-0.5 bg-gray-800 border border-gray-700 rounded text-white text-xs" />
+          <select name="awayname" defaultValue={match.away_team_id !== '0' ? match.away_team_id : ''} className="w-28 px-1 py-0.5 bg-gray-800 border border-gray-700 rounded text-white text-xs">
+            <option value="">Time fora...</option>
+            {allTeams.map((t) => (
+              <option key={t.id} value={t.id}>{t.name_en}</option>
+            ))}
+          </select>
           <button type="submit" disabled={saving} className="px-2 py-0.5 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white text-xs rounded">Nome</button>
         </form>
       ) : (
