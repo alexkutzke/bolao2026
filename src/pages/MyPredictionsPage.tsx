@@ -108,11 +108,11 @@ export function MyPredictionsPage() {
                       {match.group_name}
                     </span>
                     <span className="text-sm font-medium">
-                      {match.home_team_label || match.home_team_name}
+                      {match.home_team_name || match.home_team_label}
                     </span>
                     <span className="text-xs text-gray-600">vs</span>
                     <span className="text-sm font-medium">
-                      {match.away_team_label || match.away_team_name}
+                      {match.away_team_name || match.away_team_label}
                     </span>
                     {match.finished && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-green-900/50 text-green-400 font-medium">

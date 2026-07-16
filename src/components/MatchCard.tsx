@@ -110,7 +110,7 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
             <img src={homeFlag} alt="" className="w-8 h-5 mx-auto mb-1 rounded shadow-sm object-cover" />
           )}
           <p className="text-sm font-semibold truncate">
-            {match.home_team_label || match.home_team_name}
+            {match.home_team_name || match.home_team_label}
           </p>
           {homeForm && <FormDots form={homeForm.last5} />}
         </div>
@@ -130,7 +130,7 @@ export function MatchCard({ match, prediction, allPredictions, homeFlag, awayFla
             <img src={awayFlag} alt="" className="w-8 h-5 mx-auto mb-1 rounded shadow-sm object-cover" />
           )}
           <p className="text-sm font-semibold truncate">
-            {match.away_team_label || match.away_team_name}
+            {match.away_team_name || match.away_team_label}
           </p>
           {awayForm && <FormDots form={awayForm.last5} />}
         </div>
