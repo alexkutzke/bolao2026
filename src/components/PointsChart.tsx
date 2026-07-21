@@ -49,12 +49,6 @@ export function PointsChart({ data, userNames }: Props) {
         position: 'bottom' as const,
         labels: { color: '#9ca3af', font: { size: 11 }, padding: 15, usePointStyle: true },
       },
-      tooltip: {
-        callbacks: {
-          label: (ctx: { dataset: { label?: string }; parsed: { y: number } }) =>
-            `${ctx.dataset.label}: ${ctx.parsed.y} pts`,
-        },
-      },
     },
     scales: {
       x: {
